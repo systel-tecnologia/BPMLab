@@ -1,0 +1,2 @@
+eclipse.preferences.version=1
+libraries=["Equino","RTClib",{"package"\:"arduino","platform"\:"avr","library"\:"Wire"},"TimerThree","MCUFRIEND_kbv",{"package"\:"arduino","platform"\:"avr","library"\:"SPI"},"SD Card Override","Adafruit TouchScreen","Adafruit GFX Library"]

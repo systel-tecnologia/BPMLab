@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>BPMLab</name>
+	<comment></comment>
+	<projects>
+		<project>Equino</project>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.cdt.core.cBuilder</name>
+			<triggers>clean,full,incremental,</triggers>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.cdt.core.cnature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>org.eclipse.cdt.arduino.core.arduinoNature</nature>
+	</natures>
+	<variableList>
+		<variable>
+			<name>LIBS</name>
+			<value>file:/C:/Users/Daniel/Documents/arduino-1.8.7/libraries</value>
+		</variable>
+	</variableList>
+</projectDescription>
