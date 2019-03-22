@@ -13,6 +13,7 @@
 #define _BPMDataLogger_H_
 
 #include <RTCLib.h>
+#include <SD.h>
 #include "BPMPositionSensor.h"
 
 #define DTLOG_CS_PIN  10
@@ -70,6 +71,8 @@ class BPMDataLogger {
 		int fileIndex = 0;
 
 		char fileName[13];
+
+		File dataFile;
 
 };
 

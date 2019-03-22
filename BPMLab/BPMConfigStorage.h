@@ -13,17 +13,23 @@
 #define _BPMConfigStorage_H_
 
 #include <Arduino.h>
-#include <StorageDevice.h>
+
+#define INIT_DATA_FLAG					62
+
+#define INIT_DATA_FLAG_ADDRESS			1
+
+#define DATA_STORE_ADDRESS				10
 
 struct ConfigurationData {
-		int fileIndex = 0;
-		int totalProcessSeconds = 60;
-		int boundRate = 115200;
+		int fileIndex = 1;
+		int totalProcessSeconds = 180;
+		unsigned long boundRate = 115200;
 		int modeCron = 0;
+		int modified = 0;
 };
 
 // library interface description
-class BPMConfigStorage: public StorageDevice {
+class BPMConfigStorage {
 		// user-accessible "public" interface
 	public:
 
@@ -35,16 +41,12 @@ class BPMConfigStorage: public StorageDevice {
 
 		void save (ConfigurationData data);
 
+		void reset (void);
+
 		// library-accessible "protected" interface
 	protected:
 
 		void setup (void);
-
-		void read (uint8_t* data, uint8_t size, uint8_t address);
-
-		void write (uint8_t address, uint8_t data);
-
-		void write (uint8_t address, uint8_t* data, uint8_t size);
 
 		// library-accessible "private" interface
 	private:

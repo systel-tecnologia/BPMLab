@@ -93,6 +93,10 @@ void BPMDataLogger::write (char *format, ...) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL(record);
 #endif
+	if (dataFile) {
+		dataFile.println(record);
+	}
+
 }
 
 void BPMDataLogger::write (RecordData data) {
@@ -119,9 +123,15 @@ void BPMDataLogger::openFile (int id, DateTime dateTime) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINT_LEVEL("Open File ");
 	DBG_PRINTLN_LEVEL(getFileName());
-	write((char*) HEADER_FORMAT);
 #endif
-	fileIsOpen = true;
+	// Abrindo Arquivo
+	dataFile = SD.open(getFileName(), FILE_WRITE);
+	write((char*) HEADER_FORMAT);
+	dataFile.close();
+	dataFile = SD.open(getFileName(), FILE_WRITE);
+	if (dataFile) {
+		fileIsOpen = true;
+	}
 }
 
 void BPMDataLogger::closeFile (void) {
@@ -130,6 +140,9 @@ void BPMDataLogger::closeFile (void) {
 		DBG_PRINT_LEVEL("Close File ");
 		DBG_PRINTLN_LEVEL(getFileName());
 #endif
+		if (dataFile) {
+			dataFile.close();
+		}
 	}
 	fileIsOpen = false;
 }

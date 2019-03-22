@@ -121,10 +121,6 @@ void BPMLab::run () {
 		RecordData record;
 		DateTime now = getCurrenteDateTime(false);
 		record.dateTime = now;
-		if (!dataLogger.isFileOpen()) {
-			dataLogger.openFile(configuration.fileIndex++, record.dateTime);
-			configStorage.save(configuration);
-		}
 		record.position = positionSensor.read();
 		record.holePoke = holePokeSensor.read();
 		dataLogger.write(record);
@@ -153,6 +149,11 @@ void BPMLab::start (void) {
 	endTime = TimeSpan(configuration.totalProcessSeconds);
 	startDateTime = rtc.now();
 	calculateElapsedTime(startDateTime);
+	if (!dataLogger.isFileOpen()) {
+		dataLogger.openFile(configuration.fileIndex++, startDateTime);
+		configuration.modified = 1;
+		configStorage.save(configuration);
+	}
 	state = RUNNING;
 	updateDisplay = false;
 }
