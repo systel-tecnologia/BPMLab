@@ -17,7 +17,7 @@
 
 struct ConfigurationData {
 		int fileIndex = 0;
-		int totalProcessSeconds = 180;
+		int totalProcessSeconds = 60;
 		int boundRate = 115200;
 		int modeCron = 0;
 };

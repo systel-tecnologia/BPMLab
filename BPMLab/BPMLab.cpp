@@ -11,8 +11,6 @@
 
 #include <AudioMessageDevice.h>
 #include <Equino.h>
-#include <HardwareSerial.h>
-#include <pins_arduino.h>
 #include <RTClib.h>
 #include <TimerThree.h>
 
