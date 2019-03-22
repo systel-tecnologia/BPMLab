@@ -237,11 +237,15 @@ class BPMCommPage: public BPMPage { // @suppress("Class has a virtual method and
 
 		virtual void show (void);
 
+		virtual void refresh (void);
+
 		// library-accessible "protected" interface
 	protected:
 
 		// library-accessible "private" interface
 	private:
+
+		boolean connected = false;
 
 };
 

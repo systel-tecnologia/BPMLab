@@ -20,6 +20,8 @@
 static const char* started_label = " Started";
 static const char* canceled_label = "Canceled";
 static const char* done_label = "  Done  ";
+static const char* wait_label = "Waiting Connect";
+static const char* conn_label = "BPMLab Connected";
 
 // Labels
 static const char* start_label = "Start";
@@ -197,7 +199,7 @@ void BPMProcessPage::show (void) {
 	// Print state started
 	tft.setTextSize(FONT_SIZE_20);
 	tft.setTextColor(YELLOW, BLACK);
-	tft.print(started_label, 69, 185);
+	tft.print(started_label, 69, 169);
 
 	// Draw Cancel btn
 	initializeCancelBtn((char*) cancel_label);
@@ -229,7 +231,7 @@ void BPMProcessPage::touch (int pixel_x, int pixel_y, TouchState state) {
 				drawRing(24, 45, 90, 10, RED);
 				tft.setTextSize(FONT_SIZE_20);
 				tft.setTextColor(RED, BLACK);
-				tft.print(canceled_label, 78, 185);
+				tft.print(canceled_label, 78, 169);
 				initializeCancelBtn((char *) done_label);
 			} else {
 				navigateTo(&mainPage);
@@ -248,14 +250,14 @@ void BPMProcessPage::updateStates (void) {
 		tft.setTextColor(GREEN, BLACK);
 	}
 	tft.setTextSize(FONT_SIZE_40);
-	print(67 + offset, 110, "%3d%c", 8, currentValue, '%');
+	print(62 + offset, 110, "%3d%c", 8, currentValue, '%');
 
 	if (currentValue == 100) {
 		// Draw Ring Meter
 		drawRing(24, 45, 90, 10, GREEN);
 		tft.setTextSize(FONT_SIZE_20);
-		tft.setTextColor(GREEN, BLACK);
-		tft.print(done_label, 75, 185);
+		tft.setTextColor(WHITE, BLACK);
+		tft.print(done_label, 75, 169);
 		initializeCancelBtn((char*) done_label);
 	}
 
@@ -268,11 +270,11 @@ void BPMProcessPage::updateDateTime (TimeSpan time) {
 }
 
 void BPMProcessPage::drawRing (int x, int y, int r, int t, uint16_t color) {
-	drawIcon(x, y, timerGauge, 201, 201, color);
+	drawIcon(x, y, timerGauge, 195, 195, color);
 }
 
 void BPMProcessPage::initializeCancelBtn (char* label) {
-	cancel_btn.initButton(&tft, 120, 285, 200, 50, BLACK, BLUE, WHITE, label, FONT_SIZE_20);
+	cancel_btn.initButton(&tft, 120, 275, 200, 50, BLACK, BLUE, WHITE, label, FONT_SIZE_20);
 	cancel_btn.drawButton(false);
 }
 
@@ -284,4 +286,23 @@ void BPMSetupPage::show (void) {
 // BPM Setup Page
 void BPMCommPage::show (void) {
 	BPMPage::show();
+#if(DEBUG_LEVEL >= 4)
+	DBG_PRINTLN_LEVEL("\t\t\tShow BPM Connection Page...");
+#endif
 }
+
+void BPMCommPage::refresh (void) {
+	if (connected) {
+		drawIcon(60, 130, usb, 120, 90, GREEN);
+		tft.setTextColor(GREEN, BLACK);
+		tft.setTextSize(FONT_SIZE_20);
+		tft.print(conn_label, 15, 250);
+	} else {
+		drawIcon(60, 130, usb, 120, 90, YELLOW);
+		tft.setTextColor(YELLOW, BLACK);
+		tft.setTextSize(FONT_SIZE_20);
+		tft.print(wait_label, 15, 250);
+	}
+
+}
+
