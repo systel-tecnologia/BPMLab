@@ -154,8 +154,8 @@ void BPMMainPage::touch (int pixel_x, int pixel_y, TouchState state) {
 			start_btn.drawButton(true);
 		} else {
 			start_btn.drawButton(false);
-			navigateTo(&processPage);
 			bpmLab.start();
+			navigateTo(&processPage);
 		}
 	} else {
 		if (setup_btn.contains(pixel_x, pixel_y)) {
@@ -180,29 +180,34 @@ void BPMMainPage::touch (int pixel_x, int pixel_y, TouchState state) {
 
 // BPM Process Page
 void BPMProcessPage::show (void) {
+	Serial.println("Process Form Show ---------------------------------->");
+
 	tft.fillScreen(BLACK);
-	currentValue = 0;
+
+	// Update Elapsede Time
 	updateDateTime(bpmLab.getElapsedTime());
+
+	// Print state started
+	tft.setTextSize(FONT_SIZE_20);
+	tft.setTextColor(YELLOW, BLACK);
+	tft.print(started_label, 72, 173);
+
+	// Draw Ring Meter
 	drawRingMeter();
-	cancel_btn.initButton(&tft, 120, 275, 200, 50, BLACK, BLUE, WHITE, (char*) cancel_label, FONT_SIZE_20);
-	cancel_btn.drawButton(false);
+
+	// Draw Cancel btn
+	initializeCancelBtn((char*) cancel_label);
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t\tShow BPM Process Page...");
 #endif
 }
 
 void BPMProcessPage::refresh () {
-	if ((currentValue % 10) == 0) {
+	if (bpmLab.isRunning()) {
 		updateDateTime(bpmLab.getElapsedTime());
 		drawRingMeter();
+		Serial.println("---------------------------->  Tela Atualizada");
 	}
-	currentValue = bpmLab.getCurrentProgress();
-}
-
-void BPMProcessPage::updateDateTime (TimeSpan time) {
-	tft.setTextColor(GREEN, BLACK);
-	tft.setTextSize(FONT_SIZE_30);
-	print(50, 15, (char*) TIME_FORMAT, 12, time.hours(), time.minutes(), time.seconds());
 }
 
 void BPMProcessPage::touch (int pixel_x, int pixel_y, TouchState state) {
@@ -211,14 +216,15 @@ void BPMProcessPage::touch (int pixel_x, int pixel_y, TouchState state) {
 		if (cancel_btn.justPressed()) {
 			cancel_btn.drawButton(true);
 		} else {
-			if (bpmLab.isRunning()) {
+			if (bpmLab.isRunning() && currentValue < 100) {
 				bpmLab.cancel();
-				updateDateTime(bpmLab.getElapsedTime());
-				currentValue = bpmLab.getCurrentProgress();
-				drawRingMeter();
-				cancel_btn.initButton(&tft, 120, 275, 200, 50, BLACK, BLUE, WHITE, (char*) done_label, FONT_SIZE_20);
-				cancel_btn.drawButton(false);
+				tft.setTextSize(FONT_SIZE_20);
+				tft.setTextColor(RED, BLACK);
+				tft.print(canceled_label, 78, 173);
+				initializeCancelBtn((char *) done_label);
+				Serial.println("is process canceled ---------------------------------->");
 			} else {
+				Serial.println("goto main ---------------------------------->");
 				navigateTo(&mainPage);
 			}
 		}
@@ -226,24 +232,28 @@ void BPMProcessPage::touch (int pixel_x, int pixel_y, TouchState state) {
 }
 
 void BPMProcessPage::drawRingMeter () {
-	ringMeter(currentValue, 0, 100, 28, 50, 95);
-	char* status = started_label;
-	tft.setTextSize(FONT_SIZE_20);
-	if (bpmLab.isProcessDone()) {
-		status = done_label;
+
+	currentValue = bpmLab.getCurrentProgress();
+	Serial.print("Drawring ---------------------------------->");
+	Serial.println(currentValue);
+
+	if (currentValue == 100) {
+		tft.setTextSize(FONT_SIZE_20);
 		tft.setTextColor(GREEN, BLACK);
-		tft.print(status, 78, 173);
-		cancel_btn.initButton(&tft, 120, 275, 200, 50, BLACK, BLUE, WHITE, (char*) done_label, FONT_SIZE_20);
-		cancel_btn.drawButton(false);
-	} else
-		if (bpmLab.isProcessCanceled() && currentValue > 0) {
-			status = canceled_label;
-			tft.setTextColor(RED, BLACK);
-			tft.print(status, 78, 173);
-		} else {
-			tft.setTextColor(YELLOW, BLACK);
-			tft.print(status, 72, 173);
-		}
+		tft.print(done_label, 78, 173);
+		initializeCancelBtn((char*) done_label);
+	}
+
+	// Update Meter
+	ringMeter(currentValue, 0, 100, 28, 50, 95);
+
+}
+
+void BPMProcessPage::updateDateTime (TimeSpan time) {
+	Serial.println("Update date time ---------------------------------->");
+	tft.setTextColor(GREEN, BLACK);
+	tft.setTextSize(FONT_SIZE_30);
+	print(50, 15, (char*) TIME_FORMAT, 12, time.hours(), time.minutes(), time.seconds());
 }
 
 void BPMProcessPage::ringMeter (int percent, int vmin, int vmax, int x, int y, int r) {
@@ -334,6 +344,11 @@ unsigned int BPMProcessPage::rainbow (byte value) {
 	}
 
 	return (red << 11) + (green << 5) + blue;
+}
+
+void BPMProcessPage::initializeCancelBtn (char* label) {
+	cancel_btn.initButton(&tft, 120, 275, 200, 50, BLACK, BLUE, WHITE, label, FONT_SIZE_20);
+	cancel_btn.drawButton(false);
 }
 
 // BPM Setup Page

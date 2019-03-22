@@ -91,13 +91,15 @@ class BPMLab {
 		// library-accessible "private" interface
 		void calculateElapsedTime (DateTime currentDateTime);
 
+		boolean isRefreshRateMatchs (void);
+
 	private:
 
 		boolean writeData = false;
 
 		boolean updateDisplay = false;
 
-		int currentProgress = 0;
+		int32_t currentProgress = 0;
 
 		DateTime startDateTime = new DateTime();
 

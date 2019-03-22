@@ -130,14 +130,12 @@ void BPMLab::run () {
 		record.position = positionSensor.read();
 		record.holePoke = holePokeSensor.read();
 		dataLogger.write(record);
-		if (updateDisplay) {
-			calculateElapsedTime(now);
-		}
+		calculateElapsedTime(now);
 		writeData = false;
 	}
 
-	// Update DataDisplay
-	if (updateDisplay) {
+	// Update Display Data
+	if (isRefreshRateMatchs()) {
 		userInterface.updateDisplay();
 		updateDisplay = false;
 	}
@@ -146,17 +144,19 @@ void BPMLab::run () {
 
 void BPMLab::stop (void) {
 	writeData = false;
-	updateDisplay = false;
 	state = STOPPED;
 	dataLogger.closeFile();
 }
 
 void BPMLab::start (void) {
+	updateDisplay = true;
 	currentProgress = 0;
+	elapsedTime = TimeSpan(0);
+	endTime = TimeSpan(configuration.totalProcessSeconds);
 	startDateTime = rtc.now();
-	elapsedTime = TimeSpan(0, 0, 0, 0);
-	endTime = TimeSpan(0, 0, 1, 0);
+	calculateElapsedTime(startDateTime);
 	state = RUNNING;
+	updateDisplay = false;
 }
 
 void BPMLab::cancel (void) {
@@ -191,7 +191,9 @@ DateTime BPMLab::getCurrenteDateTime (boolean throwException) {
 		}
 	}
 	if (now.day() > 31 && throwException) {
-		state = STOPPED;
+		if (isRunning()) {
+			stop();
+		}
 		exceptionHandler.exceptionDetected(TIME_CLOCK_ERROR);
 		gotoPage(&exceptionPage);
 	}
@@ -199,14 +201,27 @@ DateTime BPMLab::getCurrenteDateTime (boolean throwException) {
 }
 
 void BPMLab::calculateElapsedTime (DateTime currentDateTime) {
-	elapsedTime = (currentDateTime - startDateTime);
-	currentProgress++;
-	if (currentProgress > 100) {
+	uint32_t t1 = elapsedTime.totalseconds();
+	uint32_t t2 = endTime.totalseconds();
+	int32_t newProgress = map(t1, 0, t2, 0, 100);
+	currentProgress = newProgress;
+	if (t1 >= t2) {
+		elapsedTime = endTime;
+		currentProgress = 100;
+		userInterface.updateDisplay();
 		done();
 	}
+	elapsedTime = (currentDateTime - startDateTime);
 }
 
-int BPMLab::getCurrentProgress () {
+boolean BPMLab::isRefreshRateMatchs (void) {
+	if (isRunning()) {
+		return updateDisplay && !writeData;
+	}
+	return updateDisplay;
+}
+
+int BPMLab::getCurrentProgress (void) {
 	return currentProgress;
 }
 

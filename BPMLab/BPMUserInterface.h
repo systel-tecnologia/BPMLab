@@ -196,9 +196,12 @@ class BPMProcessPage: public BPMPage { // @suppress("Class has a virtual method 
 		// library-accessible "protected" interface
 	protected:
 
-		void updateDateTime (TimeSpan time);
+		// library-accessible "private" interface
+	private:
 
 		void drawRingMeter ();
+
+		void updateDateTime (TimeSpan time);
 
 		void ringMeter (int percent, int vmin, int vmax, int x, int y, int r);
 
@@ -206,8 +209,7 @@ class BPMProcessPage: public BPMPage { // @suppress("Class has a virtual method 
 
 		unsigned int rainbow (byte value);
 
-		// library-accessible "private" interface
-	private:
+		void initializeCancelBtn(char* label);
 
 		Adafruit_GFX_Button cancel_btn;
 
