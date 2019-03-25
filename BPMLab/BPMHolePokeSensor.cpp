@@ -13,6 +13,8 @@
 #include "BPMHolePokeSensor.h"
 #include "BPMExceptionHandler.h"
 
+byte hpPins[11] = { HP_PORT_PIN01, HP_PORT_PIN02, HP_PORT_PIN03, HP_PORT_PIN04, HP_PORT_PIN05, HP_PORT_PIN06, HP_PORT_PIN07, HP_PORT_PIN08, HP_PORT_PIN09, HP_PORT_PIN10, HP_PORT_PIN11 };
+
 BPMHolePokeSensor::BPMHolePokeSensor () {
 
 }
@@ -31,7 +33,9 @@ void BPMHolePokeSensor::start (void) {
 }
 
 void BPMHolePokeSensor::setup (void) {
-
+	for (int i = 0; i < sizeof(hpPins); i++) {
+		pinMode(hpPins[i], INPUT_PULLUP);
+	}
 }
 
 boolean BPMHolePokeSensor::test (void) {
@@ -39,6 +43,12 @@ boolean BPMHolePokeSensor::test (void) {
 }
 
 int BPMHolePokeSensor::read () {
-	return lastHolePokeSensorState;
+	for (int i = 0; i < sizeof(hpPins); i++) {
+		int v = digitalRead(hpPins[i]);
+		if(v == LOW){
+			return  (i + 1);
+		}
+	}
+	return 0;
 }
 

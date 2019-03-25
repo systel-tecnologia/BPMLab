@@ -22,18 +22,20 @@ void setup() {
   noStroke();
   bpmArena = new BPMArena(this);
   bpmConnection = new BPMConnection(this);
-  bpmDataFileReader = new BPMDataFileReader(this); 
+  bpmDataFileReader = new BPMDataFileReader(this);
 }
 
 
 void draw() {
   background(51);
   bpmConnection.done();
-  if(bpmConnection.isProcessStarted()){
+  if (bpmConnection.isProcessStarted()) {
     DataLocation data = bpmDataFileReader.processData(bpmConnection.getData());
     bpmArena.setTitle(data.getFileName());
-    if(data.x > 0 &&  data.y > 0)
-      bpmArena.position(data.x, data.y);
+    if (data.x > 0 &&  data.y > 0){
+        bpmArena.holePoke(data.hp);
+        bpmArena.position(data.x, data.y);
+    }
   }
   bpmArena.draw();
 }

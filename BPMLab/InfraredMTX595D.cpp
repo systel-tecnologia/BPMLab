@@ -12,18 +12,10 @@
 
 #include "InfraredMTX595D.h"
 
-byte defaultRowPins[3] =
-		{
-		PIN_CLK_ROW, PIN_LATCH_ROW, PIN_DATA_ROW };
-byte defaultColPins[3] =
-		{
-		PIN_CLK_COL, PIN_LATCH_COL, PIN_DATA_COL };
-const byte scanCols[8] =
-		{
-				1, 2, 4, 8, 16, 32, 64, 128 };
-const byte scanRows[8] =
-		{
-				128, 64, 32, 16, 8, 4, 2, 1 };
+byte defaultRowPins[3] = { PIN_CLK_ROW, PIN_LATCH_ROW, PIN_DATA_ROW };
+byte defaultColPins[3] = { PIN_CLK_COL, PIN_LATCH_COL, PIN_DATA_COL };
+const byte scanCols[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+const byte scanRows[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
 InfraredMTX595D::InfraredMTX595D () {
 
@@ -38,21 +30,16 @@ void InfraredMTX595D::start (int colsCount, int rowsCount) {
 }
 
 void InfraredMTX595D::start (byte *latchColPins, byte *latchRowPins, int colsCount, int rowsCount) {
-	rows =
-			rowsCount;
-	cols =
-			colsCount;
-	colPins =
-			latchColPins;
-	rowPins =
-			latchRowPins;
+	rows = rowsCount;
+	cols = colsCount;
+	colPins = latchColPins;
+	rowPins = latchRowPins;
 	setup();
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("\t\t74HC595D Data Transmiter InfraRed Matrix Device Driver Started...");
 	DBG_PRINT_LEVEL("\t\tWrite ON [");
 	if (colPins && rowPins) {
-		for (int i =
-				0; i <= 2; i++) {
+		for (int i = 0; i <= 2; i++) {
 			DBG_PRINT_LEVEL("(P");
 			DBG_PRINT_LEVEL(i);
 			DBG_PRINT_LEVEL(":");
@@ -90,6 +77,14 @@ void InfraredMTX595D::write (const int col, const int row, int data) {
 	}
 }
 
+int InfraredMTX595D::getColsSize () {
+	return cols;
+}
+
+int InfraredMTX595D::getRowsSize () {
+	return rows;
+}
+
 void InfraredMTX595D::clear () {
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t Send Reset ALL COL / ROW Data Values");
@@ -99,8 +94,7 @@ void InfraredMTX595D::clear () {
 }
 
 void InfraredMTX595D::setup (void) {
-	for (int i =
-			0; i <= 2; i++) {
+	for (int i = 0; i <= 2; i++) {
 		pinMode(colPins[i], OUTPUT);
 		pinMode(rowPins[i], OUTPUT);
 	}

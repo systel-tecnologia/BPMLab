@@ -12,6 +12,19 @@
 #ifndef _BPMHolePokeSensor_H_
 #define _BPMHolePokeSensor_H_
 
+#define HP_PORT_PIN01 		42
+#define HP_PORT_PIN02 		44
+#define HP_PORT_PIN03 		46
+#define HP_PORT_PIN04 		48
+#define HP_PORT_PIN05 		50
+#define HP_PORT_PIN06 		52
+#define HP_PORT_PIN07 		43
+#define HP_PORT_PIN08 		45
+#define HP_PORT_PIN09 		47
+#define HP_PORT_PIN10 		49
+#define HP_PORT_PIN11 		51
+
+
 // library interface description
 class BPMHolePokeSensor {
 		// user-accessible "public" interface
@@ -33,7 +46,6 @@ class BPMHolePokeSensor {
 		// library-accessible "private" interface
 	private:
 
-		int lastHolePokeSensorState = 0;
 };
 
 #endif

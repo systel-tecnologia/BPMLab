@@ -75,15 +75,9 @@ class InfraredMTX595D: public DataSenderDevice {
 
 		void clear ();
 
-		int getColsSize () {
-			return cols;
-		}
-		;
+		int getColsSize ();
 
-		int getRowsSize () {
-			return rows;
-		}
-		;
+		int getRowsSize ();
 
 		// library-accessible "protected" interface
 	protected:
@@ -95,17 +89,13 @@ class InfraredMTX595D: public DataSenderDevice {
 		// library-accessible "private" interface
 	private:
 
-		int rows =
-				0;
+		int rows = 0;
 
-		int cols =
-				0;
+		int cols = 0;
 
-		byte *colPins =
-				0;
+		byte *colPins = 0;
 
-		byte *rowPins =
-				0;
+		byte *rowPins = 0;
 
 };
 

@@ -12,10 +12,7 @@
 
 #include "InfraredOctLM339.h"
 
-byte defaultPins[8] =
-		{
-		PIN_DATA_IN0, PIN_DATA_IN1, PIN_DATA_IN2, PIN_DATA_IN3,
-		PIN_DATA_IN4, PIN_DATA_IN5, PIN_DATA_IN6, PIN_DATA_IN7 };
+byte defaultPins[8] = { PIN_DATA_IN0, PIN_DATA_IN1, PIN_DATA_IN2, PIN_DATA_IN3, PIN_DATA_IN4, PIN_DATA_IN5, PIN_DATA_IN6, PIN_DATA_IN7 };
 
 InfraredOctLM339::InfraredOctLM339 () {
 
@@ -26,15 +23,13 @@ void InfraredOctLM339::start (void) {
 }
 
 void InfraredOctLM339::start (byte pins[]) {
-	inputPins =
-			pins;
+	inputPins = pins;
 	setup();
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("\t\tLM339 Infrared Sensor Receiver Device Driver Started...");
 	DBG_PRINT_LEVEL("\t\tReading ON [");
 	if (inputPins) {
-		for (int i =
-				0; i <= 7; i++) {
+		for (int i = 0; i <= 7; i++) {
 			DBG_PRINT_LEVEL("(P");
 			DBG_PRINT_LEVEL(i);
 			DBG_PRINT_LEVEL(":");
@@ -60,8 +55,7 @@ int InfraredOctLM339::read (const int index) {
 }
 
 void InfraredOctLM339::setup (void) {
-	for (int i =
-			0; i < 8; i++) {
+	for (int i = 0; i < 8; i++) {
 		pinMode(inputPins[i], INPUT);
 	}
 }

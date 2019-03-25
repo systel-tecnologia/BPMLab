@@ -4,10 +4,7 @@
  Date  : 05/03/2019
  Project : Systel BPM Position Sensor Grid Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
- 
- Descrição: 
- 1.0 - 05/03/2019 - Programação Básica
- 
+
  */
 #include <Arduino.h>
 #include <Equino.h>
@@ -44,13 +41,10 @@ void BPMPositionSensor::clear (void) {
 SensorData BPMPositionSensor::read (const int col, const int row) {
 	SensorData ret;
 	tx.write(col, row, HIGH);
-	ret.col =
-			col;
-	ret.row =
-			row;
-	ret.value =
-			rx.read(row);
-#if(DEBUG_LEVEL >= 4)		
+	ret.col = col;
+	ret.row = row;
+	ret.value = rx.read(row);
+#if(DEBUG_LEVEL >= 4)
 	DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
 	DBG_PRINT_LEVEL(ret.col);
 	DBG_PRINT_LEVEL(", ROW:");
@@ -64,51 +58,36 @@ SensorData BPMPositionSensor::read (const int col, const int row) {
 
 PositionData BPMPositionSensor::read (void) {
 	PositionData ret;
-	int width =
-			0;
-	int heigth =
-			0;
-	int x =
-			-1;
-	int y =
-			-1;
-	int z =
-			-1;
+	int width = 0;
+	int heigth = 0;
+	int x = -1;
+	int y = -1;
+	int z = -1;
 	for (int colIndex =
 			0; colIndex < tx.getColsSize(); colIndex++) {
-		for (int rowIndex =
-				0; rowIndex < tx.getRowsSize(); rowIndex++) {
-			SensorData data =
-					read(colIndex, rowIndex);
+		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
+			SensorData data = read(colIndex, rowIndex);
 			if (data.value == 1) {
 				if (data.col <= 2) {
-					x =
-							((data.col * 8) + data.row);
+					x = ((data.col * 8) + data.row);
 					width++;
 				} else
 					if (data.col == 3 || data.col == 4) {
-						y =
-								((data.col * 8) + data.row) - 24;
+						y = ((data.col * 8) + data.row) - 24;
 						heigth++;
 					} else
 						if (data.col == 5 || data.col == 6) {
-							z =
-									1;
+							z =1;
 						}
 			}
 		}
 	}
 	tx.clear();
-	ret.width =
-			width;
-	ret.heigth =
-			heigth;
-	ret.x =
-			x;
-	ret.y =
-			y;
-	ret.z =
-			z;
+	ret.width = width;
+	ret.heigth = heigth;
+	ret.x = x;
+	ret.y = y;
+	ret.z = z;
 	return ret;
 }
 

@@ -76,8 +76,7 @@ class InfraredOctLM339: public DataReceiverDevice {
 		// library-accessible "private" interface
 	private:
 
-		byte *inputPins =
-				0;
+		byte *inputPins = 0;
 
 };
 
