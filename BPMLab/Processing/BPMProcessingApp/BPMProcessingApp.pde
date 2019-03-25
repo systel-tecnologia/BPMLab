@@ -11,42 +11,35 @@
 
 private BPMConnection bpmConnection;
 private BPMArena bpmArena;
-
-private int option = 0;
+private BPMDataFileReader bpmDataFileReader; 
 
 void setup() {
-  size(800, 600, P2D);
-  
+  size(800, 600, JAVA2D);
+
   ellipseMode(RADIUS);
   rectMode(CORNERS);
   imageMode(CENTER);
-  
-  if (option == 0) {
-    bpmArena = new BPMArena(this);
-  }
-
-  if (option == 1) {
-    bpmConnection = new BPMConnection(this);
-  }
+  noStroke();
+  bpmArena = new BPMArena(this);
+  bpmConnection = new BPMConnection(this);
+  bpmDataFileReader = new BPMDataFileReader(this); 
 }
 
 
 void draw() {
   background(51);
-  switch (option) {
-  case 0:
-    bpmArena.draw();
-    break;
-  case 1:
-    bpmConnection.done();
-    break;
+  bpmConnection.done();
+  if(bpmConnection.isProcessStarted()){
+    DataLocation data = bpmDataFileReader.processData(bpmConnection.getData());
+    bpmArena.setTitle(data.getFileName());
+    if(data.x > 0 &&  data.y > 0)
+      bpmArena.position(data.x, data.y);
   }
+  bpmArena.draw();
 }
 
 void keyPressed() {
-  
 }
 
 void keyReleased() {
-  
 }

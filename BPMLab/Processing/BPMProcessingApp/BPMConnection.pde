@@ -14,38 +14,58 @@ public class BPMConnection {
 
   boolean listen = false;
   boolean connected = false;
+  boolean processStarted = false;
+  String dataReaded = "";
 
   public BPMConnection(PApplet parent) {
     super();
 
     connected = false;
     listen = false;
-    String portName = Serial.list()[1];
+    String portName = "COM4"; //Serial.list()[1];
     int baunds = 115200;
     device = new Serial(parent, portName, baunds);
   }
 
-  void loop() {
-  }
 
-  void done() {
+  public void done() {
     if ( device.available() > 0) {  // If data is available,
       String data = device.readString();    
       print(data);
       if (isBPMLabListen(data)) {
         if (isConnect(data)) {
+          dataReaded = data;
         }
+      } else if (isStartedProcess(data)) {
+        dataReaded = data;
       }
     }
   }
 
-  boolean isBPMLabListen(String data) { 
-    if (data.equals("BPM Lab Devices Started...\r\nBPM System Running...\r\n")) {
+  public String getData() {
+    return dataReaded;
+  }
+
+  public boolean isProcessStarted() {
+    return processStarted;
+  }
+
+  private boolean isStartedProcess(String data) {
+    if (data.indexOf("Open File") >= 0) {
+      processStarted = true;
+    } else if (data.indexOf("Close File") >= 0) {
+      processStarted = false;
+    }
+    return processStarted;
+  }
+
+  private boolean isBPMLabListen(String data) { 
+    if (data.indexOf("BPM System Running...") >= 0) {
       listen = false;
     }
 
     if (!listen) {
-      if (data.equals("\tBPM Lab Waiting for Connections...\r\n")) {
+      if (data.indexOf("BPM Lab Waiting for Connections...") >= 0) {
         listen = true;
         println("Processing::Send Connection Code...");
         device.write("BPMLabAdm");
@@ -54,9 +74,9 @@ public class BPMConnection {
     return listen;
   }
 
-  boolean isConnect(String data) {
+  private  boolean isConnect(String data) {
     if (!connected) {
-      if (data.equals("\tBPM Lab Receive Connection Code :BPMLabAdm\r\n\tBPM Connection Success. Wait for commands...\r\n")) {
+      if (data.indexOf("BPM Connection Success. Wait for commands...") >= 0) {
         println("Processing::Connected to BPM Lab");
         connected = true;
       }

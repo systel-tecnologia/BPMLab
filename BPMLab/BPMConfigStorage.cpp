@@ -50,7 +50,7 @@ ConfigurationData BPMConfigStorage::load (void) {
 
 void BPMConfigStorage::save (ConfigurationData data) {
 	if (data.modified != 0) {
-#if(DEBUG_LEVEL >= 3)
+#if(DEBUG_LEVEL >= 4)
 		DBG_PRINTLN_LEVEL("\t\tEEPROM Data saved...");
 #endif
 		int eeAddress = DATA_STORE_ADDRESS;

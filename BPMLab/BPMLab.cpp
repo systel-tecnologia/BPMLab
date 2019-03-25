@@ -116,6 +116,10 @@ void BPMLab::setup (void) {
 		gotoPage(&exceptionPage);
 	}
 
+	#if(REMOTE_DEBUG == 1)
+		bpmLab.start();
+		gotoPage(&processPage);
+	#endif
 }
 
 void BPMLab::run () {

@@ -16,6 +16,7 @@
 #include <SD.h>
 #include "BPMPositionSensor.h"
 
+#define REMOTE_DEBUG  1
 #define DTLOG_CS_PIN  10
 #define DTLOG_D0_PIN  11
 #define DTLOG_D1_PIN  12

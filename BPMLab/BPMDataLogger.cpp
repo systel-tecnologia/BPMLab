@@ -93,14 +93,15 @@ void BPMDataLogger::write (char *format, ...) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL(record);
 #endif
+#if(REMOTE_DEBUG == 0)
 	if (dataFile) {
 		dataFile.println(record);
 	}
+#endif
 
 }
 
 void BPMDataLogger::write (RecordData data) {
-#if(DEBUG_LEVEL >= 3)
 	write((char*) RECORD_FORMAT,
 			data.dateTime.day(),
 			data.dateTime.month(),
@@ -114,7 +115,6 @@ void BPMDataLogger::write (RecordData data) {
 			data.position.heigth,
 			data.position.width,
 			data.holePoke);
-#endif
 }
 
 void BPMDataLogger::openFile (int id, DateTime dateTime) {
@@ -125,6 +125,7 @@ void BPMDataLogger::openFile (int id, DateTime dateTime) {
 	DBG_PRINTLN_LEVEL(getFileName());
 #endif
 	// Abrindo Arquivo
+#if(REMOTE_DEBUG == 0)
 	dataFile = SD.open(getFileName(), FILE_WRITE);
 	write((char*) HEADER_FORMAT);
 	dataFile.close();
@@ -132,6 +133,10 @@ void BPMDataLogger::openFile (int id, DateTime dateTime) {
 	if (dataFile) {
 		fileIsOpen = true;
 	}
+#endif
+#if(REMOTE_DEBUG == 1)
+	fileIsOpen = true;
+#endif
 }
 
 void BPMDataLogger::closeFile (void) {
@@ -140,9 +145,11 @@ void BPMDataLogger::closeFile (void) {
 		DBG_PRINT_LEVEL("Close File ");
 		DBG_PRINTLN_LEVEL(getFileName());
 #endif
+#if(REMOTE_DEBUG == 0)
 		if (dataFile) {
 			dataFile.close();
 		}
+#endif
 	}
 	fileIsOpen = false;
 }
