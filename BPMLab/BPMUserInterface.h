@@ -245,7 +245,7 @@ class BPMCommPage: public BPMPage { // @suppress("Class has a virtual method and
 		// library-accessible "private" interface
 	private:
 
-		boolean connected = false;
+		boolean blink = true;
 
 };
 

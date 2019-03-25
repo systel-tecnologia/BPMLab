@@ -8,20 +8,27 @@
  GUI Pages
  */
 
-#include <Arduino.h>
+#include <avr/pgmspace.h>
+#include <AudioMessageDevice.h>
+#include <Equino.h>
+#include <MCUFRIEND_kbv.h>
+#include <RTClib.h>
 #include <stdarg.h>
-#include <RTCLib.h>
-#include "BPMLab.h"
-#include "BPMIcons.h"
-#include "BPMUserInterface.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <UTFTGLUE.h>
+
 #include "BPMExceptionHandler.h"
+#include "BPMIcons.h"
+#include "BPMLab.h"
+#include "BPMUserInterface.h"
 
 // States
 static const char* started_label = " Started";
 static const char* canceled_label = "Canceled";
 static const char* done_label = "  Done  ";
-static const char* wait_label = "Waiting Connect";
-static const char* conn_label = "BPMLab Connected";
+static const char* wait_label = "Waiting Connection";
+static const char* conn_label = " BPMLab Connected ";
 
 // Labels
 static const char* start_label = "Start";
@@ -289,20 +296,27 @@ void BPMCommPage::show (void) {
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t\tShow BPM Connection Page...");
 #endif
+	bpmLab.listen();
 }
 
 void BPMCommPage::refresh (void) {
-	if (connected) {
-		drawIcon(60, 130, usb, 120, 90, GREEN);
+	uint16_t color1 = BLACK;
+	uint16_t color2 = BLACK;
+	if (blink) {
+		color1 = YELLOW;
+		color2 = GREEN;
+	}
+	if (bpmLab.isConnected()) {
+		drawIcon(60, 130, usb, 120, 90, color2);
 		tft.setTextColor(GREEN, BLACK);
 		tft.setTextSize(FONT_SIZE_20);
 		tft.print(conn_label, 15, 250);
 	} else {
-		drawIcon(60, 130, usb, 120, 90, YELLOW);
+		drawIcon(60, 130, usb, 120, 90, color1);
 		tft.setTextColor(YELLOW, BLACK);
 		tft.setTextSize(FONT_SIZE_20);
 		tft.print(wait_label, 15, 250);
 	}
-
+	blink = !blink;
 }
 

@@ -2,7 +2,7 @@
  File  : BPMConfigStorage.cpp
  Version : 1.0
  Date  : 13/03/2019
- Project : Systel BPM Data Logger Support Arduino Library
+ Project : Systel Storage EEPROM Devices Configuration Data Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
  Storage EEPROM Devices Configuration Data

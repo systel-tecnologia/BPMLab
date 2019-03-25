@@ -1,8 +1,8 @@
 /*
- File: Equino.cpp
+ File: BPMLab.cpp
  Version: 1.0
  Date: 16/03/2019
- Project: Systel Equino BPM Library
+ Project: Systel BPM Application
  Author: Daniel Valentin - dtvalentin@gmail.com
 
  */
@@ -11,8 +11,11 @@
 
 #include <AudioMessageDevice.h>
 #include <Equino.h>
-#include <RTClib.h>
+#include <HardwareSerial.h>
+#include <pins_arduino.h>
+#include <stdint.h>
 #include <TimerThree.h>
+#include <WString.h>
 
 #include "BPMExceptionHandler.h"
 #include "BPMUserInterface.h"
@@ -116,8 +119,8 @@ void BPMLab::setup (void) {
 }
 
 void BPMLab::run () {
-	// Write Datalog
 	if (isRunning() && writeData) {
+		// Datalog Processs
 		RecordData record;
 		DateTime now = getCurrenteDateTime(false);
 		record.dateTime = now;
@@ -126,6 +129,14 @@ void BPMLab::run () {
 		dataLogger.write(record);
 		calculateElapsedTime(now);
 		writeData = false;
+	} else {
+		// Requests Process
+		if (isConnected()) {
+			answersRequests();
+		} else
+			if (isWaitConnection()) {
+				listeningConnections();
+			}
 	}
 
 	// Update Display Data
@@ -134,6 +145,7 @@ void BPMLab::run () {
 		updateDisplay = false;
 	}
 	userInterface.readTouch();
+
 }
 
 void BPMLab::stop (void) {
@@ -168,6 +180,28 @@ void BPMLab::done (void) {
 	dataLogger.closeFile();
 }
 
+void BPMLab::listen (void) {
+#if(DEBUG_LEVEL >= 3)
+	DBG_PRINTLN_LEVEL("\tBPM Lab Waiting for Connections...");
+#endif
+	state = WAIT_CONECTION;
+}
+
+void BPMLab::connect (void) {
+#if(DEBUG_LEVEL >= 3)
+	DBG_PRINTLN_LEVEL("\tBPM Connection Success. Wait for commands...");
+#endif
+	state = CONNECTED;
+}
+
+void BPMLab::close (void) {
+	reset();
+}
+
+void BPMLab::reset (void) {
+
+}
+
 boolean BPMLab::isRunning (void) {
 	return (state == RUNNING);
 }
@@ -177,6 +211,50 @@ boolean BPMLab::isProcessDone (void) {
 
 boolean BPMLab::isProcessCanceled () {
 	return (state == CANCELED);
+}
+
+boolean BPMLab::isWaitConnection () {
+	return (state == WAIT_CONECTION);
+}
+
+boolean BPMLab::isConnected () {
+	return (state == CONNECTED);
+}
+
+boolean BPMLab::isRefreshRateMatchs (void) {
+	if (isRunning()) {
+		return updateDisplay && !writeData;
+	}
+	return updateDisplay;
+}
+
+void BPMLab::answersRequests (void) {
+	if (Serial.available() > 0) {
+		int startCode = Serial.read();
+#if(DEBUG_LEVEL >= 3)
+		DBG_PRINT_LEVEL("\tBPM Lab Receive Request Code (");
+		DBG_PRINT_LEVEL(startCode);
+		DBG_PRINTLN_LEVEL(")...");
+#endif
+	}
+
+}
+
+void BPMLab::listeningConnections (void) {
+	if (Serial.available() > 0) {
+		String data = Serial.readString();
+#if(DEBUG_LEVEL >= 3)
+		DBG_PRINT_LEVEL("\tBPM Lab Receive Connection Code :");
+		DBG_PRINTLN_LEVEL(data);
+#endif
+		if (commandProcessor.isAutorizationCode(data)) {
+			connect();
+		} else {
+#if(DEBUG_LEVEL >= 3)
+			DBG_PRINTLN_LEVEL("\tBPMLab Autorization Code is not valid...");
+#endif
+		}
+	}
 }
 
 DateTime BPMLab::getCurrenteDateTime (boolean throwException) {
@@ -211,13 +289,6 @@ void BPMLab::calculateElapsedTime (DateTime currentDateTime) {
 		done();
 	}
 	elapsedTime = (currentDateTime - startDateTime);
-}
-
-boolean BPMLab::isRefreshRateMatchs (void) {
-	if (isRunning()) {
-		return updateDisplay && !writeData;
-	}
-	return updateDisplay;
 }
 
 int BPMLab::getCurrentProgress (void) {

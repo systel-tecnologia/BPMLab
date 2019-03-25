@@ -1,10 +1,10 @@
 /*
- File: Equino.h
+ File: BPMLab.h
  Version: 1.0
- Date: 05/03/2019
- Project: Systel Equino Library
+ Date: 16/03/2019
+ Project: Systel BPM Application
  Author: Daniel Valentin - dtvalentin@gmail.com
- 
+
  */
 
 #ifndef _BPMLab_H_
@@ -13,8 +13,10 @@
 #include <Arduino.h>
 #include <AudioBuzzer.h>
 #include <RTClib.h>
+#include <stdint.h>
 #include <TC.h>
 
+#include "BPMCommandProcessor.h"
 #include "BPMConfigStorage.h"
 #include "BPMDataLogger.h"
 #include "BPMHolePokeSensor.h"
@@ -31,7 +33,7 @@ class BPMPage;
 #define RTC_INT_PIN   		19
 
 enum StateMachine {
-	STOPPED, RUNNING, DONE, CANCELED
+	STOPPED, RUNNING, DONE, CANCELED, WAIT_CONECTION, CONNECTED
 };
 
 // library interface description
@@ -39,7 +41,7 @@ class BPMLab {
 		// user-accessible "public" interface
 	public:
 
-		BPMLab ();
+		BPMLab (void);
 
 		void update (void);
 
@@ -57,19 +59,31 @@ class BPMLab {
 
 		void run (void);
 
+		void listen (void);
+
+		void connect (void);
+
+		void close (void);
+
+		void reset (void);
+
+		boolean isRunning (void);
+
+		boolean isProcessDone (void);
+
+		boolean isProcessCanceled (void);
+
+		boolean isConnected (void);
+
+		boolean isWaitConnection (void);
+
 		void gotoPage (BPMPage *page);
+
+		int getCurrentProgress (void);
 
 		DateTime getCurrenteDateTime (boolean throwException);
 
-		TimeSpan getElapsedTime ();
-
-		int getCurrentProgress ();
-
-		boolean isRunning ();
-
-		boolean isProcessDone ();
-
-		boolean isProcessCanceled ();
+		TimeSpan getElapsedTime (void);
 
 		RTCDs1307 rtc; // @suppress("Abstract class cannot be instantiated")
 
@@ -85,6 +99,8 @@ class BPMLab {
 
 		ConfigurationData configuration;
 
+		BPMCommandProcessor commandProcessor;
+
 		// library-accessible "protected" interface
 	protected:
 
@@ -92,6 +108,10 @@ class BPMLab {
 		void calculateElapsedTime (DateTime currentDateTime);
 
 		boolean isRefreshRateMatchs (void);
+
+		void answersRequests (void);
+
+		void listeningConnections (void);
 
 	private:
 
