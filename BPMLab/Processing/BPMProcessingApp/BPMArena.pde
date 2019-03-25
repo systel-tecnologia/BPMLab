@@ -31,6 +31,7 @@ public class BPMArena {
 
   String t = "";
   String p = "";
+  String h = "";
 
   public BPMArena(PApplet parent) {
     this.parent = parent;
@@ -41,6 +42,10 @@ public class BPMArena {
 
   public void setTitle(String title) {
     t = title;
+  }
+  
+  public void holePoke(int hp){
+    h = "HP: " + hp;
   }
   
   public void position(int pos_x, int pos_y) {
@@ -67,8 +72,9 @@ public class BPMArena {
     ey += dy * easing;
 
     textFont(font, 26);
-    text(t, 90, 80);
-    text(p, 90, 120);
+    text(t, 90, 60);
+    text(p, 90, 90);
+    text(h, 90, 130);
     parent.ellipse((ex + offset_x), (ey + offset_y), diameter, diameter);
   }
 }
