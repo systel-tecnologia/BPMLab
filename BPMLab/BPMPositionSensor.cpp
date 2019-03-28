@@ -38,51 +38,35 @@ void BPMPositionSensor::clear (void) {
 	tx.clear();
 }
 
-SensorData BPMPositionSensor::read (const int col, const int row) {
+SensorData BPMPositionSensor::readData (void) {
 	SensorData ret;
-	tx.write(col, row, HIGH);
-	ret.col = col;
-	ret.row = row;
-	ret.value = rx.read(row);
+	for (int colIndex = 0; colIndex < tx.getColsSize(); colIndex++) {
+		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
+			tx.write(colIndex, rowIndex, HIGH);
+			int value = rx.read(rowIndex);
+			ret.value[colIndex][rowIndex] = value;
 #if(DEBUG_LEVEL >= 4)
-	DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
-	DBG_PRINT_LEVEL(ret.col);
-	DBG_PRINT_LEVEL(", ROW:");
-	DBG_PRINT_LEVEL(ret.row);
-	DBG_PRINT_LEVEL(") VALUE: [");
-	DBG_PRINT_LEVEL(ret.value);
-	DBG_PRINTLN_LEVEL("]");
-#endif	
+			DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
+			DBG_PRINT_LEVEL(colIndex);
+			DBG_PRINT_LEVEL(", ROW:");
+			DBG_PRINT_LEVEL(rowIndex);
+			DBG_PRINT_LEVEL(") VALUE: [");
+			DBG_PRINT_LEVEL(value);
+			DBG_PRINTLN_LEVEL("]");
+#endif
+		}
+	}
 	return ret;
 }
 
 PositionData BPMPositionSensor::read (void) {
+	SensorData data = readData();
 	PositionData ret;
 	int width = 0;
 	int heigth = 0;
 	int x = -1;
 	int y = -1;
 	int z = -1;
-	for (int colIndex =
-			0; colIndex < tx.getColsSize(); colIndex++) {
-		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
-			SensorData data = read(colIndex, rowIndex);
-			if (data.value == 1) {
-				if (data.col <= 2) {
-					x = ((data.col * 8) + data.row);
-					width++;
-				} else
-					if (data.col == 3 || data.col == 4) {
-						y = ((data.col * 8) + data.row) - 24;
-						heigth++;
-					} else
-						if (data.col == 5 || data.col == 6) {
-							z =1;
-						}
-			}
-		}
-	}
-	tx.clear();
 	ret.width = width;
 	ret.heigth = heigth;
 	ret.x = x;

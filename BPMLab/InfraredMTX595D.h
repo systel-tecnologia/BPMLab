@@ -55,7 +55,7 @@
 #define LATCH 1
 #define DATA  2
 
-#define DEFAULT_COL_COUNT  	7			// Colunms Sensor Grid Size 
+#define DEFAULT_COL_COUNT  	7			// Colunms Sensor Grid Size
 #define DEFAULT_ROW_COUNT  	8			// Rows Sensor Grid Size 
 
 // library interface description

@@ -72,6 +72,10 @@ public class BPMDataFileReader {
   public void processData(File file) {
   }
 
+  public void closeFile() {
+    //fileOpen = false;
+  }
+
   private DataLocation extractDataLocation(String data) {
     DataLocation dataLocation = new DataLocation();
     dataLocation.fileName = fileName;
@@ -83,7 +87,7 @@ public class BPMDataFileReader {
       dataLocation.y = parseInt(parts[3]);
       dataLocation.h = parseInt(parts[5]);
       dataLocation.w = parseInt(parts[6]);
-      dataLocation.hp = parseInt(parts[7].replace("\r\n",""));
+      dataLocation.hp = parseInt(parts[7].replace("\r\n", ""));
     }
     return dataLocation;
   }

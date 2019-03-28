@@ -14,8 +14,10 @@
 
 byte defaultRowPins[3] = { PIN_CLK_ROW, PIN_LATCH_ROW, PIN_DATA_ROW };
 byte defaultColPins[3] = { PIN_CLK_COL, PIN_LATCH_COL, PIN_DATA_COL };
-const byte scanCols[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
-const byte scanRows[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+const byte scanCols[8] = { 1, 2, 4, 16, 64, 8, 32, 128 };
+const byte scanRows1[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+const byte scanRows2[8] = { 32, 16, 8, 4, 2, 1, 128, 64 };
+const byte scanRows3[8] = { 32, 8, 16, 4, 2, 1, 128, 64 };
 
 InfraredMTX595D::InfraredMTX595D () {
 
@@ -62,7 +64,14 @@ void InfraredMTX595D::write (byte *latchPins, const byte value) {
 
 void InfraredMTX595D::write (const int col, const int row, int data) {
 	if (data == HIGH) {
-		write(rowPins, scanRows[row]);
+		if (col == 3) {
+			write(rowPins, scanRows3[row]);
+		} else
+			if (col == 4) {
+				write(rowPins, scanRows2[row]);
+			} else {
+				write(rowPins, scanRows1[row]);
+			}
 		write(colPins, scanCols[col]);
 #if(DEBUG_LEVEL >= 4)
 		DBG_PRINT_LEVEL("\t\t\tSend: (ROW:");

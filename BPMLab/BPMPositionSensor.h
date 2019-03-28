@@ -56,9 +56,14 @@
 #include "InfraredOctLM339.h"
 
 struct SensorData {
-		int col = 0;
-		int row = 0;
-		byte value = 0;
+		int value[7][8] = {
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
+				{ -1 - 1, -1, -1, -1, -1, -1, -1 } };
 };
 
 struct PositionData {
@@ -78,7 +83,7 @@ class BPMPositionSensor {
 
 		void start (void);
 
-		SensorData read (const int col, const int row);
+		SensorData readData (void);
 
 		PositionData read (void);
 

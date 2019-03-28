@@ -7,15 +7,9 @@
 
  */
 
-#include "BPMLab.h"
-
 #include <AudioMessageDevice.h>
-#include <Equino.h>
-#include <HardwareSerial.h>
-#include <pins_arduino.h>
-#include <stdint.h>
 #include <TimerThree.h>
-#include <WString.h>
+#include "BPMLab.h"
 
 #include "BPMExceptionHandler.h"
 #include "BPMUserInterface.h"
@@ -116,10 +110,10 @@ void BPMLab::setup (void) {
 		gotoPage(&exceptionPage);
 	}
 
-	#if(REMOTE_DEBUG == 1)
-		bpmLab.start();
-		gotoPage(&processPage);
-	#endif
+#if(REMOTE_DEBUG == 1)
+	bpmLab.start();
+	gotoPage(&processPage);
+#endif
 }
 
 void BPMLab::run () {
