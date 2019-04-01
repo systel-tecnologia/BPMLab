@@ -7,11 +7,22 @@
  
  */
 #include <Arduino.h>
+#include "BPMLab.h"
 #include "BPMCommandProcessor.h"
 
-boolean BPMCommandProcessor::isAutorizationCode (String data) {
-	if(data.equals(START_CODE)){
+boolean BPMCommandProcessor::isAutorizationCode(String data) {
+	if (data.equals(START_CODE)) {
 		return true;
 	}
 	return false;
 }
+
+void BPMCommandProcessor::execute(String command) {
+	if(command.startsWith("LISTFILES")){
+		bpmLab.dataLogger.listFileNames();
+	}
+	if(command.startsWith("DUMPFILE")){
+		bpmLab.dataLogger.dumpFile(command.substring(9, 21));
+	}
+}
+

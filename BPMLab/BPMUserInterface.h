@@ -222,12 +222,26 @@ class BPMSetupPage: public BPMPage { // @suppress("Class has a virtual method an
 
 		virtual void show (void);
 
+		virtual void refresh (void);
+
+		virtual void touch (int pixel_x, int pixel_y, TouchState state);
+
 		// library-accessible "protected" interface
 	protected:
 
+		void setTimeIndex(void);
+
 		// library-accessible "private" interface
 	private:
+		Adafruit_GFX_Button prev_btn;
 
+		Adafruit_GFX_Button next_btn;
+
+		Adafruit_GFX_Button save_btn;
+
+		Adafruit_GFX_Button cancel_btn;
+
+		int timeIndex = 0;
 };
 
 // library interface description
@@ -261,3 +275,4 @@ extern BPMProcessPage processPage;
 extern BPMSetupPage setupPage;
 
 #endif
+

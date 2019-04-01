@@ -55,6 +55,10 @@ class BPMDataLogger {
 
 		char* getFileName (void);
 
+		void listFileNames(void);
+
+		void dumpFile(String name);
+
 		// library-accessible "protected" interface
 	protected:
 

@@ -22,6 +22,8 @@ class BPMCommandProcessor {
 
 		boolean isAutorizationCode (String data);
 
+		void execute(String command);
+
 		// library-accessible "protected" interface
 	protected:
 

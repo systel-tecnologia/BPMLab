@@ -41,6 +41,9 @@ void draw() {
 }
 
 void keyPressed() {
+  if(key == 'F'){
+    bpmConnection.sendComamnd("LISTFILES");
+  }
 }
 
 void keyReleased() {

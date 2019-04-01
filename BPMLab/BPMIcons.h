@@ -745,4 +745,3 @@ const unsigned char usb[] PROGMEM = {
 };
 
 #endif /* BPMICONS_H_ */
-

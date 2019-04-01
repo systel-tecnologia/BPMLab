@@ -83,4 +83,8 @@ public class BPMConnection {
     }
     return connected;
   }
+  
+  public void sendComamnd(String command){
+     device.write(command);   
+  }
 }

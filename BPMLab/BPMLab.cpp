@@ -229,12 +229,13 @@ boolean BPMLab::isRefreshRateMatchs (void) {
 
 void BPMLab::answersRequests (void) {
 	if (Serial.available() > 0) {
-		int startCode = Serial.read();
+		String command = Serial.readString();
 #if(DEBUG_LEVEL >= 3)
-		DBG_PRINT_LEVEL("\tBPM Lab Receive Request Code (");
-		DBG_PRINT_LEVEL(startCode);
+		DBG_PRINT_LEVEL("\tBPM Lab Receive Request Command (");
+		DBG_PRINT_LEVEL(command);
 		DBG_PRINTLN_LEVEL(")...");
 #endif
+		commandProcessor.execute(command);
 	}
 
 }

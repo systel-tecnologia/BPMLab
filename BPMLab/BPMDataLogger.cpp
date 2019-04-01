@@ -8,13 +8,19 @@
  SD Card Data Logger
  
  */
-#include <Arduino.h>
-#include <stdarg.h>
-#include <Equino.h>
-#include <SD.h>
-#include "BPMPositionSensor.h"
-#include "BPMExceptionHandler.h"
+
 #include "BPMDataLogger.h"
+
+#include <Equino.h>
+#include <HardwareSerial.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <Sd2Card.h>
+#include <SdFat.h>
+#include <WString.h>
+
+#include "BPMExceptionHandler.h"
 
 DateTime dt;
 
@@ -166,4 +172,27 @@ void BPMDataLogger::setFileName(char *format, ...) {
 	va_start(args, format);
 	vsnprintf(fileName, 13, format, args);
 	va_end(args);
+}
+
+void BPMDataLogger::listFileNames(void) {
+	Serial.println("<listfilenamesstart>");
+	SdFile root = SD.root;
+	root.ls(LS_R | LS_DATE | LS_SIZE, 16);
+	Serial.println("<listfilenamesend>");
+}
+
+void BPMDataLogger::dumpFile(String name) {
+	Serial.println("<dumpfilestart>");
+	char * fn = name.c_str();
+	Serial.println(fn);
+	File file = SD.open((char*) fn, FILE_READ);
+	if (file) {
+		while (file.available()) {
+			Serial.write(file.read());
+		}
+		file.close();
+	} else {
+		Serial.println("<dumpfileerror>");
+	}
+	Serial.println("<dumpfileend>");
 }
