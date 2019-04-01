@@ -105,6 +105,8 @@ class BPMPositionSensor {
 
 		InfraredMTX595D tx;
 
+		PositionData positionDataStored;
+
 };
 
 #endif

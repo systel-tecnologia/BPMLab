@@ -100,3 +100,4 @@ class InfraredMTX595D: public DataSenderDevice {
 };
 
 #endif
+

@@ -9,7 +9,7 @@
  1.0 - 04/03/2019 - Programação Básica
  
  */
-
+#include <Arduino.h>
 #include "InfraredMTX595D.h"
 
 byte defaultRowPins[3] = { PIN_CLK_ROW, PIN_LATCH_ROW, PIN_DATA_ROW };

@@ -58,11 +58,12 @@ SensorData BPMPositionSensor::readData(void) {
 			}
 		}
 	}
+	clear();
 	return ret;
 }
 
 PositionData BPMPositionSensor::read(void) {
-	PositionData ret;
+	PositionData positionData;
 	int width = 0;
 	int heigth = 0;
 	int length = 0;
@@ -90,14 +91,19 @@ PositionData BPMPositionSensor::read(void) {
 			}
 		}
 	}
-	ret.data = data;
-	ret.width = width;
-	ret.heigth = heigth;
-	ret.length = length;
-	ret.x = x;
-	ret.y = y;
-	ret.z = z;
-	return ret;
+
+	positionData.data = data;
+	positionData.width = width;
+	positionData.heigth = heigth;
+	positionData.length = length;
+	positionData.x = x;
+	positionData.y = y;
+	positionData.z = z;
+	if(x == -1 || y == -1){
+		positionData = positionDataStored;
+	}
+	positionDataStored = positionData;
+	return positionData;
 }
 
 boolean BPMPositionSensor::test(void) {
