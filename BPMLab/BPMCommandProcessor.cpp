@@ -6,7 +6,7 @@
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
  */
-
+#include <Arduino.h>
 #include "BPMCommandProcessor.h"
 
 boolean BPMCommandProcessor::isAutorizationCode (String data) {

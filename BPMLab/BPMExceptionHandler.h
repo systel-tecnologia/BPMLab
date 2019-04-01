@@ -13,6 +13,7 @@
 #define _BPMExceptionHandler_H_
 
 #include <avr/pgmspace.h>
+#include <Arduino.h>
 
 static const char msg0[] PROGMEM = "No Error Found...";
 static const char msg1[] PROGMEM = "SD Card Not Found";

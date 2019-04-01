@@ -11,11 +11,11 @@
 #include "BPMPositionSensor.h"
 #include "BPMExceptionHandler.h"
 
-BPMPositionSensor::BPMPositionSensor () {
+BPMPositionSensor::BPMPositionSensor() {
 
 }
 
-void BPMPositionSensor::start (void) {
+void BPMPositionSensor::start(void) {
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("\tStarting BPM Position Sensor Array...");
 #endif
@@ -30,51 +30,77 @@ void BPMPositionSensor::start (void) {
 #endif
 }
 
-void BPMPositionSensor::setup (void) {
+void BPMPositionSensor::setup(void) {
 
 }
 
-void BPMPositionSensor::clear (void) {
+void BPMPositionSensor::clear(void) {
 	tx.clear();
 }
 
-SensorData BPMPositionSensor::readData (void) {
+SensorData BPMPositionSensor::readData(void) {
 	SensorData ret;
 	for (int colIndex = 0; colIndex < tx.getColsSize(); colIndex++) {
 		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
-			tx.write(colIndex, rowIndex, HIGH);
-			int value = rx.read(rowIndex);
-			ret.value[colIndex][rowIndex] = value;
+			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
+				tx.write(colIndex, rowIndex, HIGH);
+				int value = rx.read(rowIndex);
+				ret.value[colIndex][rowIndex] = value;
 #if(DEBUG_LEVEL >= 4)
-			DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
-			DBG_PRINT_LEVEL(colIndex);
-			DBG_PRINT_LEVEL(", ROW:");
-			DBG_PRINT_LEVEL(rowIndex);
-			DBG_PRINT_LEVEL(") VALUE: [");
-			DBG_PRINT_LEVEL(value);
-			DBG_PRINTLN_LEVEL("]");
+				DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
+				DBG_PRINT_LEVEL(colIndex);
+				DBG_PRINT_LEVEL(", ROW:");
+				DBG_PRINT_LEVEL(rowIndex);
+				DBG_PRINT_LEVEL(") VALUE: [");
+				DBG_PRINT_LEVEL(value);
+				DBG_PRINTLN_LEVEL("]");
 #endif
+			}
 		}
 	}
 	return ret;
 }
 
-PositionData BPMPositionSensor::read (void) {
-	SensorData data = readData();
+PositionData BPMPositionSensor::read(void) {
 	PositionData ret;
 	int width = 0;
 	int heigth = 0;
+	int length = 0;
 	int x = -1;
 	int y = -1;
 	int z = -1;
+	int cs = tx.getColsSize();
+	int rs = tx.getRowsSize();
+	SensorData data = readData();
+	for (int colIndex = 0; colIndex < cs; colIndex++) {
+		for (int rowIndex = 0; rowIndex < rs; rowIndex++) {
+			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
+				if (data.value[colIndex][rowIndex] == 1) {
+					if (colIndex <= 2) { // Map x
+						x = (colIndex * rs) + rowIndex;
+						width++;
+					} else if (colIndex <= 4) { // Map y
+						y = ((colIndex - 3) * rs) + rowIndex;
+						heigth++;
+					} else { //Map z
+						z = ((colIndex - 5) * rs) + rowIndex;
+						length++;
+					}
+				}
+			}
+		}
+	}
+	ret.data = data;
 	ret.width = width;
 	ret.heigth = heigth;
+	ret.length = length;
 	ret.x = x;
 	ret.y = y;
 	ret.z = z;
 	return ret;
 }
 
-boolean BPMPositionSensor::test (void) {
+boolean BPMPositionSensor::test(void) {
 	return true;
 }
+

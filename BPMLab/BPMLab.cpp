@@ -6,7 +6,7 @@
  Author: Daniel Valentin - dtvalentin@gmail.com
 
  */
-
+#include <Arduino.h>
 #include <AudioMessageDevice.h>
 #include <TimerThree.h>
 #include "BPMLab.h"
@@ -50,6 +50,8 @@ BPMLab::BPMLab () {
 
 void BPMLab::setup (void) {
 	// Starting Output Audio Devide
+	pinMode(SOUND_CTRL_PIN, OUTPUT);
+	digitalWrite(SOUND_CTRL_PIN, LOW);
 	audio.start(SOUND_PIN);
 
 	// Starting RTC
@@ -149,6 +151,7 @@ void BPMLab::run () {
 void BPMLab::stop (void) {
 	writeData = false;
 	state = STOPPED;
+	positionSensor.clear();
 	dataLogger.closeFile();
 }
 
@@ -169,11 +172,13 @@ void BPMLab::start (void) {
 }
 
 void BPMLab::cancel (void) {
+	positionSensor.clear();
 	state = CANCELED;
 	dataLogger.closeFile();
 }
 
 void BPMLab::done (void) {
+	positionSensor.clear();
 	state = DONE;
 	dataLogger.closeFile();
 }

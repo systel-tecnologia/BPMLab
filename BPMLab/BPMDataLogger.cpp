@@ -16,11 +16,11 @@
 #include "BPMExceptionHandler.h"
 #include "BPMDataLogger.h"
 
-BPMDataLogger::BPMDataLogger () {
+BPMDataLogger::BPMDataLogger() {
 
 }
 
-void BPMDataLogger::start (void) {
+void BPMDataLogger::start(void) {
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("\tStarting BPM Data Logger...");
 #endif		
@@ -30,7 +30,7 @@ void BPMDataLogger::start (void) {
 #endif
 }
 
-void BPMDataLogger::setup (void) {
+void BPMDataLogger::setup(void) {
 	if (SD.begin(DTLOG_CS_PIN, DTLOG_D0_PIN, DTLOG_D1_PIN, DTLOG_CK_PIN)) {
 #if(DEBUG_LEVEL >= 3)
 		DBG_PRINTLN_LEVEL("\t\tReading SD Card Information...");
@@ -41,7 +41,7 @@ void BPMDataLogger::setup (void) {
 	}
 }
 
-void BPMDataLogger::cardInfo (void) {
+void BPMDataLogger::cardInfo(void) {
 
 	Sd2Card card = SD.card;
 	SdVolume volume = SD.volume;
@@ -49,17 +49,17 @@ void BPMDataLogger::cardInfo (void) {
 
 	DBG_PRINT_LEVEL("\t\tCard type: ");
 	switch (card.type()) {
-		case SD_CARD_TYPE_SD1:
-			DBG_PRINTLN_LEVEL("SD1");
-			break;
-		case SD_CARD_TYPE_SD2:
-			DBG_PRINTLN_LEVEL("SD2");
-			break;
-		case SD_CARD_TYPE_SDHC:
-			DBG_PRINTLN_LEVEL("SDHC");
-			break;
-		default:
-			DBG_PRINTLN_LEVEL("CARD UNKNOW");
+	case SD_CARD_TYPE_SD1:
+		DBG_PRINTLN_LEVEL("SD1");
+		break;
+	case SD_CARD_TYPE_SD2:
+		DBG_PRINTLN_LEVEL("SD2");
+		break;
+	case SD_CARD_TYPE_SDHC:
+		DBG_PRINTLN_LEVEL("SDHC");
+		break;
+	default:
+		DBG_PRINTLN_LEVEL("CARD UNKNOW");
 	}
 
 	DBG_PRINT_LEVEL("\t\tClusters: ");
@@ -77,14 +77,15 @@ void BPMDataLogger::cardInfo (void) {
 	DBG_PRINT_LEVEL("\t\tVolume size (Mb): ");
 	DBG_PRINTLN_LEVEL(volumesize /= 1024);
 	DBG_PRINT_LEVEL("\t\tVolume size (Gb):  ");
-	DBG_PRINTLN_LEVEL((float )volumesize / 1024.0);
+	DBG_PRINTLN_LEVEL((float ) volumesize / 1024.0);
 	DBG_PRINTLN_LEVEL("\t\tName\t\tDate\t\t   Size");
-	DBG_PRINTLN_LEVEL("\t\t-----------------------------------------------------");
+	DBG_PRINTLN_LEVEL(
+			"\t\t-----------------------------------------------------");
 	root.ls(LS_R | LS_DATE | LS_SIZE, 16);
 
 }
 
-void BPMDataLogger::write (char *format, ...) {
+void BPMDataLogger::write(char *format, ...) {
 	char record[60];
 	va_list args;
 	va_start(args, format);
@@ -93,31 +94,22 @@ void BPMDataLogger::write (char *format, ...) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL(record);
 #endif
-#if(REMOTE_DEBUG == 0)
+
 	if (dataFile) {
 		dataFile.println(record);
 	}
-#endif
 
 }
 
-void BPMDataLogger::write (RecordData data) {
-	write((char*) RECORD_FORMAT,
-			data.dateTime.day(),
-			data.dateTime.month(),
-			data.dateTime.year(),
-			data.dateTime.hour(),
-			data.dateTime.minute(),
-			data.dateTime.second(),
-			data.position.x,
-			data.position.y,
-			data.position.z,
-			data.position.heigth,
-			data.position.width,
+void BPMDataLogger::write(RecordData data) {
+	write((char*) RECORD_FORMAT, data.dateTime.day(), data.dateTime.month(),
+			data.dateTime.year(), data.dateTime.hour(), data.dateTime.minute(),
+			data.dateTime.second(), data.position.x, data.position.y,
+			data.position.z, data.position.heigth, data.position.width,
 			data.holePoke);
 }
 
-void BPMDataLogger::openFile (int id, DateTime dateTime) {
+void BPMDataLogger::openFile(int id, DateTime dateTime) {
 	fileIndex = id;
 	setFileName((char*) FILE_NAME_FORMAT, id);
 #if(DEBUG_LEVEL >= 3)
@@ -125,7 +117,6 @@ void BPMDataLogger::openFile (int id, DateTime dateTime) {
 	DBG_PRINTLN_LEVEL(getFileName());
 #endif
 	// Abrindo Arquivo
-#if(REMOTE_DEBUG == 0)
 	dataFile = SD.open(getFileName(), FILE_WRITE);
 	write((char*) HEADER_FORMAT);
 	dataFile.close();
@@ -133,40 +124,35 @@ void BPMDataLogger::openFile (int id, DateTime dateTime) {
 	if (dataFile) {
 		fileIsOpen = true;
 	}
-#endif
-#if(REMOTE_DEBUG == 1)
 	fileIsOpen = true;
-#endif
 }
 
-void BPMDataLogger::closeFile (void) {
+void BPMDataLogger::closeFile(void) {
 	if (fileIsOpen) {
 #if(DEBUG_LEVEL >= 3)
 		DBG_PRINT_LEVEL("Close File ");
 		DBG_PRINTLN_LEVEL(getFileName());
 #endif
-#if(REMOTE_DEBUG == 0)
 		if (dataFile) {
 			dataFile.close();
 		}
-#endif
 	}
 	fileIsOpen = false;
 }
 
-boolean BPMDataLogger::isFileOpen (void) {
+boolean BPMDataLogger::isFileOpen(void) {
 	return fileIsOpen;
 }
 
-int BPMDataLogger::getFileIndex (void) {
+int BPMDataLogger::getFileIndex(void) {
 	return fileIndex;
 }
 
-char* BPMDataLogger::getFileName (void) {
+char* BPMDataLogger::getFileName(void) {
 	return fileName;
 }
 
-void BPMDataLogger::setFileName (char *format, ...) {
+void BPMDataLogger::setFileName(char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	vsnprintf(fileName, 13, format, args);

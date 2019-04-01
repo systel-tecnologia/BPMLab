@@ -29,6 +29,7 @@ class BPMPage;
 #define TMR_INTERVAL_ISR	100000		// Timer Interval 10ms
 
 // Hardware Config Params
+#define SOUND_CTRL_PIN 		17
 #define SOUND_PIN     		18 
 #define RTC_INT_PIN   		19
 
@@ -121,7 +122,7 @@ class BPMLab {
 
 		int32_t currentProgress = 0;
 
-		DateTime startDateTime = new DateTime();
+		DateTime startDateTime;
 
 		TimeSpan elapsedTime = TimeSpan(0, 0, 0, 0);
 

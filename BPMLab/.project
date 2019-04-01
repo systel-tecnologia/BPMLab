@@ -3,7 +3,6 @@
 	<name>BPMLab</name>
 	<comment></comment>
 	<projects>
-		<project>Equino</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

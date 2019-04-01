@@ -73,13 +73,13 @@ public class BPMDataFileReader {
   }
 
   public void closeFile() {
-    //fileOpen = false;
+    fileOpen = false;
   }
 
   private DataLocation extractDataLocation(String data) {
     DataLocation dataLocation = new DataLocation();
     dataLocation.fileName = fileName;
-    String[] parts = data.split("\t");
+    String[] parts = data.split(";");
     if (parts.length == 8 && !parts[0].equals("DATE")) {
       dataLocation.date = parts[0];
       dataLocation.time = parts[1];
@@ -96,8 +96,7 @@ public class BPMDataFileReader {
     if (!fileOpen) {
       String[] parts = data.split(" ");
       for (int i = 0; i < parts.length; i++) {
-        println(parts[i]);
-        if (parts[i].startsWith("BPMLOG")) {
+        if (parts[i].startsWith("BPMDF")) {
           fileOpen = true;
           fileName = parts[i];
           break;

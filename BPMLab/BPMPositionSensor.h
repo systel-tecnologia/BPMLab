@@ -72,6 +72,8 @@ struct PositionData {
 		int z = -1;
 		int heigth = 0;
 		int width = 0;
+		int length = 0;
+		SensorData data;
 };
 
 // library interface description

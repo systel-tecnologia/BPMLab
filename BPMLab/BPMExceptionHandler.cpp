@@ -9,6 +9,7 @@
  
  */
 
+#include <Arduino.h>
 #include "BPMLab.h"
 #include "BPMExceptionHandler.h"
 
