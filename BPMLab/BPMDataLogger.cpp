@@ -16,6 +16,13 @@
 #include "BPMExceptionHandler.h"
 #include "BPMDataLogger.h"
 
+DateTime dt;
+
+void setDateTime(uint16_t *date, uint16_t *time) {
+	*date = FAT_DATE(dt.year(), dt.month(), dt.day());
+	*time = FAT_TIME(dt.hour(), dt.minute(), dt.second());
+}
+
 BPMDataLogger::BPMDataLogger() {
 
 }
@@ -31,6 +38,7 @@ void BPMDataLogger::start(void) {
 }
 
 void BPMDataLogger::setup(void) {
+	SD.root.dateTimeCallback(setDateTime);
 	if (SD.begin(DTLOG_CS_PIN, DTLOG_D0_PIN, DTLOG_D1_PIN, DTLOG_CK_PIN)) {
 #if(DEBUG_LEVEL >= 3)
 		DBG_PRINTLN_LEVEL("\t\tReading SD Card Information...");
@@ -106,10 +114,11 @@ void BPMDataLogger::write(RecordData data) {
 			data.dateTime.year(), data.dateTime.hour(), data.dateTime.minute(),
 			data.dateTime.second(), data.position.x, data.position.y,
 			data.position.z, data.position.heigth, data.position.width,
-			data.holePoke);
+			data.position.length, data.holePoke);
 }
 
 void BPMDataLogger::openFile(int id, DateTime dateTime) {
+	dt = dateTime;
 	fileIndex = id;
 	setFileName((char*) FILE_NAME_FORMAT, id);
 #if(DEBUG_LEVEL >= 3)

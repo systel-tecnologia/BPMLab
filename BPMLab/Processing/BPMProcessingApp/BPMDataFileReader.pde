@@ -80,7 +80,7 @@ public class BPMDataFileReader {
     DataLocation dataLocation = new DataLocation();
     dataLocation.fileName = fileName;
     String[] parts = data.split(";");
-    if (parts.length == 8 && !parts[0].equals("DATE")) {
+    if (parts.length == 9 && !parts[0].equals("DATE")) {
       dataLocation.date = parts[0];
       dataLocation.time = parts[1];
       dataLocation.x = parseInt(parts[2]);

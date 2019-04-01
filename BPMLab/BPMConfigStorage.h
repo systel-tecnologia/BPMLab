@@ -14,7 +14,7 @@
 
 #include <Arduino.h>
 
-#define INIT_DATA_FLAG					62
+#define INIT_DATA_FLAG					63
 
 #define INIT_DATA_FLAG_ADDRESS			1
 
