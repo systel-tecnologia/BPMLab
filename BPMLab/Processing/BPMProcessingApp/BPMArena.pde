@@ -48,7 +48,7 @@ public class BPMArena {
     h = "HP: " + hp;
   }
   
-  public void position(int pos_x, int pos_y) {
+  public void position(int pos_x, int pos_y, int width, int heigth, int length) {
     if (pos_x < 0) {
       x = 0;
     } else if (pos_x > (sensor_x - 1)) 
@@ -75,6 +75,7 @@ public class BPMArena {
     text(t, 90, 60);
     text(p, 90, 90);
     text(h, 90, 130);
+    fill(170, 170, 0);
     parent.ellipse((ex + offset_x), (ey + offset_y), diameter, diameter);
   }
 }

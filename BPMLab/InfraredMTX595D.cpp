@@ -19,6 +19,11 @@ const byte scanRows1[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 const byte scanRows2[8] = { 32, 16, 8, 4, 2, 1, 128, 64 };
 const byte scanRows3[8] = { 32, 8, 16, 4, 2, 1, 128, 64 };
 
+//const byte scanCols[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+//const byte scanRows1[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+//const byte scanRows2[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+//const byte scanRows3[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
 InfraredMTX595D::InfraredMTX595D () {
 
 }

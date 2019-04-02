@@ -33,6 +33,8 @@ void BPMHolePokeSensor::start (void) {
 }
 
 void BPMHolePokeSensor::setup (void) {
+	pinMode(HP_ENAB_PIN, OUTPUT);
+	digitalWrite(HP_ENAB_PIN, LOW);
 	for (int i = 0; i < sizeof(hpPins); i++) {
 		pinMode(hpPins[i], INPUT_PULLUP);
 	}
@@ -43,12 +45,16 @@ boolean BPMHolePokeSensor::test (void) {
 }
 
 int BPMHolePokeSensor::read () {
+	digitalWrite(HP_ENAB_PIN, HIGH);
 	for (int i = 0; i < sizeof(hpPins); i++) {
+		delay(1);
 		int v = digitalRead(hpPins[i]);
 		if(v == LOW){
+			digitalWrite(HP_ENAB_PIN, LOW);
 			return  (i + 1);
 		}
 	}
+	digitalWrite(HP_ENAB_PIN, LOW);
 	return 0;
 }
 

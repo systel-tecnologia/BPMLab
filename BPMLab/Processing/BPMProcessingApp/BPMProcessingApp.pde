@@ -34,15 +34,18 @@ void draw() {
     bpmArena.setTitle(data.getFileName());
     if (data.x > 0 &&  data.y > 0){
         bpmArena.holePoke(data.hp);
-        bpmArena.position(data.x, data.y);
+        bpmArena.position(data.x, data.y, data.z, data.w, data.h);
     } 
   }
   bpmArena.draw();
 }
 
 void keyPressed() {
-  if(key == 'F'){
+  if(key == 'L'){
     bpmConnection.sendComamnd("LISTFILES");
+  }
+  if(key == 'D'){
+    bpmConnection.sendComamnd("DUMPFILE,BPMDF004.CSV");
   }
 }
 

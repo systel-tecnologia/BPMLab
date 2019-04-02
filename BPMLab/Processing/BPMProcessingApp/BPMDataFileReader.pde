@@ -15,6 +15,7 @@ public class DataLocation {
   private int z;
   private int h;
   private int w;
+  private int l;
   private int hp;
 
   public String getFileName() { 
@@ -48,6 +49,11 @@ public class DataLocation {
   public int getW() { 
     return w;
   };
+  
+  public int getL() { 
+    return l;
+  };
+
 
   public int getHp() { 
     return hp;
@@ -87,7 +93,8 @@ public class BPMDataFileReader {
       dataLocation.y = parseInt(parts[3]);
       dataLocation.h = parseInt(parts[5]);
       dataLocation.w = parseInt(parts[6]);
-      dataLocation.hp = parseInt(parts[7].replace("\r\n", ""));
+      dataLocation.w = parseInt(parts[7]);
+      dataLocation.hp = parseInt(parts[8].replace("\r\n", ""));
     }
     return dataLocation;
   }

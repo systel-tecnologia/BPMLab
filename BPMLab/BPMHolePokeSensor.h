@@ -24,6 +24,7 @@
 #define HP_PORT_PIN10 		49
 #define HP_PORT_PIN11 		51
 
+#define HP_ENAB_PIN			53
 
 // library interface description
 class BPMHolePokeSensor {
