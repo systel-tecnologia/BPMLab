@@ -91,9 +91,10 @@ public class BPMDataFileReader {
       dataLocation.time = parts[1];
       dataLocation.x = parseInt(parts[2]);
       dataLocation.y = parseInt(parts[3]);
+      dataLocation.z = parseInt(parts[4]);
       dataLocation.h = parseInt(parts[5]);
       dataLocation.w = parseInt(parts[6]);
-      dataLocation.w = parseInt(parts[7]);
+      dataLocation.l = parseInt(parts[7]);
       dataLocation.hp = parseInt(parts[8].replace("\r\n", ""));
     }
     return dataLocation;

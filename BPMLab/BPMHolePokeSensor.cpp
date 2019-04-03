@@ -47,7 +47,7 @@ boolean BPMHolePokeSensor::test (void) {
 int BPMHolePokeSensor::read () {
 	digitalWrite(HP_ENAB_PIN, HIGH);
 	for (int i = 0; i < sizeof(hpPins); i++) {
-		delay(1);
+		delay(2);
 		int v = digitalRead(hpPins[i]);
 		if(v == LOW){
 			digitalWrite(HP_ENAB_PIN, LOW);

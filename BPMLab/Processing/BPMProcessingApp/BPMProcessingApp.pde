@@ -34,7 +34,7 @@ void draw() {
     bpmArena.setTitle(data.getFileName());
     if (data.x > 0 &&  data.y > 0){
         bpmArena.holePoke(data.hp);
-        bpmArena.position(data.x, data.y, data.z, data.w, data.h);
+        bpmArena.position(data.x, data.y, data.z, data.w, data.h, data.l, data.hp);
     } 
   }
   bpmArena.draw();

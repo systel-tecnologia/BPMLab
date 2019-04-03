@@ -42,9 +42,21 @@ SensorData BPMPositionSensor::readData(void) {
 	SensorData ret;
 	for (int colIndex = 0; colIndex < tx.getColsSize(); colIndex++) {
 		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
+			delay(1);
 			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
 				tx.write(colIndex, rowIndex, HIGH);
 				int value = rx.read(rowIndex);
+
+				if ((colIndex == 5 && rowIndex == 6)
+						|| (colIndex == 0 && rowIndex == 0)
+						|| (colIndex == 0 && rowIndex == 2)
+						|| (colIndex == 1 && rowIndex == 2)
+						|| (colIndex == 3 && rowIndex == 0)
+						|| (colIndex == 5 && rowIndex == 0)
+						|| (colIndex == 5 && rowIndex == 7)) {
+					value = 0;
+				}
+
 				ret.value[colIndex][rowIndex] = value;
 #if(DEBUG_LEVEL >= 4)
 				DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
@@ -58,6 +70,7 @@ SensorData BPMPositionSensor::readData(void) {
 			}
 		}
 	}
+	delay(10);
 	clear();
 	return ret;
 }
@@ -81,7 +94,7 @@ PositionData BPMPositionSensor::read(void) {
 						x = (colIndex * rs) + rowIndex;
 						width++;
 					} else if (colIndex <= 4) { // Map y
-						y = ((colIndex - 3) * rs) + rowIndex;
+						y = (((colIndex - 3) * rs) + rowIndex) - 1;
 						heigth++;
 					} else { //Map z
 						z = ((colIndex - 5) * rs) + rowIndex;
@@ -99,7 +112,7 @@ PositionData BPMPositionSensor::read(void) {
 	positionData.x = x;
 	positionData.y = y;
 	positionData.z = z;
-	if(x == -1 || y == -1){
+	if (x == -1 || y == -1) {
 		positionData = positionDataStored;
 	}
 	positionDataStored = positionData;

@@ -14,6 +14,7 @@ public class BPMArena {
 
   private int x;
   private int y;
+  private int z;
   private int offset_x = 110;
   private int offset_y = 170;
   private int diameter = 15;
@@ -48,7 +49,8 @@ public class BPMArena {
     h = "HP: " + hp;
   }
   
-  public void position(int pos_x, int pos_y, int width, int heigth, int length) {
+  public void position(int pos_x, int pos_y, int pos_z, int size_w, int size_h, int size_l, int hp) {
+    z = pos_z;
     if (pos_x < 0) {
       x = 0;
     } else if (pos_x > (sensor_x - 1)) 
@@ -74,8 +76,12 @@ public class BPMArena {
     textFont(font, 26);
     text(t, 90, 60);
     text(p, 90, 90);
-    text(h, 90, 130);
-    fill(170, 170, 0);
+    //text(h, 90, 130);
+    //if(z > -1){
+      fill(0, 0, 255);
+    //} else{
+    //  fill(255, 0, 0);
+    //}
     parent.ellipse((ex + offset_x), (ey + offset_y), diameter, diameter);
   }
 }

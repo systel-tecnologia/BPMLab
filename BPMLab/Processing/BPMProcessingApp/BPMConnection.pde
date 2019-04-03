@@ -22,7 +22,7 @@ public class BPMConnection {
 
     connected = false;
     listen = false;
-    String portName = "COM1"; //Serial.list()[1];
+    String portName = "COM4"; //Serial.list()[1];
     int baunds = 115200;
     device = new Serial(parent, portName, baunds);
   }
