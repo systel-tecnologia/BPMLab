@@ -10,34 +10,48 @@ import processing.serial.*;
 
 public class BPMConnection {
 
+  PApplet owner;
   Serial device;  // Create object from Serial class
+
+  int bauds[] = {4800, 9600, 19200, 38400, 57600, 115200};
 
   boolean listen = false;
   boolean connected = false;
   boolean processStarted = false;
+  boolean deviceIsOpen = false;
   String dataReaded = "";
 
   public BPMConnection(PApplet parent) {
     super();
-
+    owner = parent;
     connected = false;
     listen = false;
-    String portName = "COM4"; //Serial.list()[1];
-    int baunds = 115200;
-    device = new Serial(parent, portName, baunds);
   }
 
+  public int[] baudRates() {
+    return bauds;
+  }
+  public String[] portList() {
+    return Serial.list();
+  }
+
+  public void openDevice(String portName, int baunds) {
+    device = new Serial(owner, portName, baunds);
+    deviceIsOpen = true;
+  }
 
   public void done() {
-    if ( device.available() > 0) {  // If data is available,
-      String data = device.readString();    
-      print(data);
-      if (isBPMLabListen(data)) {
-        if (isConnect(data)) {
+    if (deviceIsOpen) {
+      if ( device.available() > 0) {  // If data is available,
+        String data = device.readString();    
+        print(data);
+        if (isBPMLabListen(data)) {
+          if (isConnect(data)) {
+            dataReaded = data;
+          }
+        } else if (isStartedProcess(data)) {
           dataReaded = data;
         }
-      } else if (isStartedProcess(data)) {
-        dataReaded = data;
       }
     }
   }
@@ -83,8 +97,8 @@ public class BPMConnection {
     }
     return connected;
   }
-  
-  public void sendComamnd(String command){
-     device.write(command);   
+
+  public void sendComamnd(String command) {
+    device.write(command);
   }
 }

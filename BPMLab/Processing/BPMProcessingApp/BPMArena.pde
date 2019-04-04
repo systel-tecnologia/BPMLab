@@ -11,24 +11,26 @@ public class BPMArena {
   PApplet parent;
 
   private PImage arena;
+  private PImage mice;
 
   private int x;
   private int y;
   private int z;
-  private int offset_x = 110;
-  private int offset_y = 170;
-  private int diameter = 15;
+  private int offset_x = 295;
+  private int offset_y = 60;
+
 
   private int sensor_dx = 25;
   private int sensor_dy = 25;
   private int sensor_y = 12;
   private int sensor_x = 24;
+  private int diameter = 25;
 
   PFont font = createFont("Arial", 6);
 
   float ex;
   float ey;
-  float easing = 0.04;
+  float easing = 0.1;
 
   String t = "";
   String p = "";
@@ -37,6 +39,7 @@ public class BPMArena {
   public BPMArena(PApplet parent) {
     this.parent = parent;
     arena = parent.loadImage("arena.png");
+    mice = parent.loadImage("mice.png");
     x = 0;
     y = 0;
   }
@@ -44,11 +47,11 @@ public class BPMArena {
   public void setTitle(String title) {
     t = title;
   }
-  
-  public void holePoke(int hp){
+
+  public void holePoke(int hp) {
     h = "HP: " + hp;
   }
-  
+
   public void position(int pos_x, int pos_y, int pos_z, int size_w, int size_h, int size_l, int hp) {
     z = pos_z;
     if (pos_x < 0) {
@@ -65,7 +68,7 @@ public class BPMArena {
   }
 
   public void draw() {
-    parent.image(arena, 400, 300, 620, 310);
+    parent.image(arena, 580, 195, 620, 310);
     float targetX = x;
     float dx = targetX - ex;
     ex += dx * easing;
@@ -74,14 +77,10 @@ public class BPMArena {
     ey += dy * easing;
 
     textFont(font, 26);
-    text(t, 90, 60);
-    text(p, 90, 90);
-    //text(h, 90, 130);
-    //if(z > -1){
-      fill(0, 0, 255);
-    //} else{
-    //  fill(255, 0, 0);
-    //}
-    parent.ellipse((ex + offset_x), (ey + offset_y), diameter, diameter);
+    text(t, 900, 60);
+    text(p, 900, 90);
+    text(h, 900, 130);
+    fill(0, 0, 255);
+    parent.image(mice, (ex + offset_x), (ey + offset_y), diameter*2, diameter*2);
   }
 }
