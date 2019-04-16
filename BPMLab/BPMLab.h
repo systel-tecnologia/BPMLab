@@ -13,8 +13,7 @@
 #include <Arduino.h>
 #include <AudioBuzzer.h>
 #include <RTClib.h>
-#include <stdint.h>
-#include <TC.h>
+#include <TimeDevice.h>
 
 #include "BPMCommandProcessor.h"
 #include "BPMConfigStorage.h"

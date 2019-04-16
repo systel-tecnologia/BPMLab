@@ -12,7 +12,7 @@
 #include <Equino.h>
 #include <Adafruit_GFX.h>
 #include <TouchScreen.h>
-#include <TC.h>
+#include <TimeDevice.h>
 #include "BPMLab.h"
 #include "BPMUserInterface.h"
 

@@ -16,7 +16,7 @@
 #include <RTCLib.h>
 #include <UTFTGLUE.h>
 #include <RTCLib.h>
-#include <TC.h>
+#include <TimeDevice.h>
 #include <TouchScreen.h>
 #include <Adafruit_GFX.h>
 #include <AudioMessageDevice.h>
