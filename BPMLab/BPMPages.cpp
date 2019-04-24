@@ -154,7 +154,7 @@ void BPMMainPage::show(void) {
 			(char*) comm_label, FONT_SIZE_20);
 	start_btn.drawButton(false);
 	setup_btn.drawButton(false);
-	comm_btn.drawButton(false);
+	comm_btn.drawButton(true);
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t\tShow BPM Page Main...");
 #endif
@@ -192,7 +192,7 @@ void BPMMainPage::touch(int pixel_x, int pixel_y, TouchState state) {
 				setup_btn.drawButton(false);
 				navigateTo(&setupPage);
 			}
-		} else if (comm_btn.contains(pixel_x, pixel_y)) {
+		} /*else if (comm_btn.contains(pixel_x, pixel_y)) {
 			comm_btn.press(state == TS_PRESSED);
 			if (comm_btn.justPressed()) {
 				comm_btn.drawButton(true);
@@ -200,7 +200,7 @@ void BPMMainPage::touch(int pixel_x, int pixel_y, TouchState state) {
 				comm_btn.drawButton(false);
 				navigateTo(&commPage);
 			}
-		}
+		}*/
 	}
 }
 

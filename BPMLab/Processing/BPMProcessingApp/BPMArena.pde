@@ -16,7 +16,7 @@ public class BPMArena {
   private int x;
   private int y;
   private int z;
-  private int offset_x = 295;
+  private int offset_x = 310;
   private int offset_y = 60;
 
 
@@ -25,8 +25,6 @@ public class BPMArena {
   private int sensor_y = 12;
   private int sensor_x = 24;
   private int diameter = 25;
-
-  PFont font = createFont("Arial", 6);
 
   float ex;
   float ey;
@@ -64,11 +62,14 @@ public class BPMArena {
     } else if (pos_y > (sensor_y - 1))
       y = ((sensor_y - 1) * sensor_dy);
     else y = (pos_y * sensor_dy);
-    p = "POS: (" + pos_x + ", " + pos_y + ")";
+    
+    t = "BPM File:";
+    p = "POS: (" + pos_x + ", " + pos_y + ", " + pos_z + ")";
+    h = "HP: (" + hp + ")";
   }
 
-  public void draw() {
-    parent.image(arena, 580, 195, 620, 310);
+  public void update() {
+    parent.image(arena, 300, 50, 620, 310);
     float targetX = x;
     float dx = targetX - ex;
     ex += dx * easing;
@@ -76,10 +77,10 @@ public class BPMArena {
     float dy = targetY - ey;
     ey += dy * easing;
 
-    textFont(font, 26);
-    text(t, 900, 60);
-    text(p, 900, 90);
-    text(h, 900, 130);
+    textFont(font, 20);
+    text(t, 300, 390);
+    text(p, 300, 420);
+    text(h, 300, 450);
     fill(0, 0, 255);
     parent.image(mice, (ex + offset_x), (ey + offset_y), diameter*2, diameter*2);
   }

@@ -41,8 +41,6 @@ class BPMDataLogger {
 
 		void start (void);
 
-		void cardInfo (void);
-
 		void write (RecordData data);
 
 		void openFile (int id, DateTime dateTime);
@@ -56,6 +54,10 @@ class BPMDataLogger {
 		char* getFileName (void);
 
 		void listFileNames(void);
+
+		void cardInfo (void);
+
+		void deleteFile(String name);
 
 		void dumpFile(String name);
 

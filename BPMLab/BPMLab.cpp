@@ -16,7 +16,7 @@
 
 BPMLab bpmLab;
 
-void setup (void) {
+void setup(void) {
 
 	Serial.begin(SERIAL_BOUND);
 	while (!Serial) {
@@ -31,24 +31,24 @@ void setup (void) {
 
 }
 
-void loop (void) {
+void loop(void) {
 	// Main Execution
 	bpmLab.run();
 }
 
-void rtcIsr () {
+void rtcIsr() {
 	bpmLab.update();
 }
 
-void timerIsr () {
+void timerIsr() {
 	bpmLab.write();
 }
 
-BPMLab::BPMLab () {
+BPMLab::BPMLab() {
 
 }
 
-void BPMLab::setup (void) {
+void BPMLab::setup(void) {
 	// Starting Output Audio Devide
 	pinMode(SOUND_CTRL_PIN, OUTPUT);
 	digitalWrite(SOUND_CTRL_PIN, LOW);
@@ -112,9 +112,10 @@ void BPMLab::setup (void) {
 		gotoPage(&exceptionPage);
 	}
 
+	listen();
 }
 
-void BPMLab::run () {
+void BPMLab::run() {
 	if (isRunning() && writeData) {
 		// Datalog Processs
 		RecordData record;
@@ -129,10 +130,9 @@ void BPMLab::run () {
 		// Requests Process
 		if (isConnected()) {
 			answersRequests();
-		} else
-			if (isWaitConnection()) {
-				listeningConnections();
-			}
+		} else if (isWaitConnection()) {
+			listeningConnections();
+		}
 	}
 
 	// Update Display Data
@@ -144,14 +144,14 @@ void BPMLab::run () {
 
 }
 
-void BPMLab::stop (void) {
+void BPMLab::stop(void) {
 	writeData = false;
 	state = STOPPED;
 	positionSensor.clear();
 	dataLogger.closeFile();
 }
 
-void BPMLab::start (void) {
+void BPMLab::start(void) {
 	updateDisplay = true;
 	currentProgress = 0;
 	elapsedTime = TimeSpan(0);
@@ -167,67 +167,67 @@ void BPMLab::start (void) {
 	updateDisplay = false;
 }
 
-void BPMLab::cancel (void) {
+void BPMLab::cancel(void) {
 	positionSensor.clear();
 	state = CANCELED;
 	dataLogger.closeFile();
 }
 
-void BPMLab::done (void) {
+void BPMLab::done(void) {
 	positionSensor.clear();
 	state = DONE;
 	dataLogger.closeFile();
 }
 
-void BPMLab::listen (void) {
+void BPMLab::listen(void) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL("\tBPM Lab Waiting for Connections...");
 #endif
 	state = WAIT_CONECTION;
 }
 
-void BPMLab::connect (void) {
+void BPMLab::connect(void) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL("\tBPM Connection Success. Wait for commands...");
 #endif
 	state = CONNECTED;
 }
 
-void BPMLab::close (void) {
+void BPMLab::close(void) {
 	reset();
 }
 
-void BPMLab::reset (void) {
-
+void BPMLab::reset(void) {
+	digitalWrite(LCD_RS, HIGH);
 }
 
-boolean BPMLab::isRunning (void) {
+boolean BPMLab::isRunning(void) {
 	return (state == RUNNING);
 }
-boolean BPMLab::isProcessDone (void) {
+boolean BPMLab::isProcessDone(void) {
 	return (state == DONE);
 }
 
-boolean BPMLab::isProcessCanceled () {
+boolean BPMLab::isProcessCanceled() {
 	return (state == CANCELED);
 }
 
-boolean BPMLab::isWaitConnection () {
+boolean BPMLab::isWaitConnection() {
 	return (state == WAIT_CONECTION);
 }
 
-boolean BPMLab::isConnected () {
+boolean BPMLab::isConnected() {
 	return (state == CONNECTED);
 }
 
-boolean BPMLab::isRefreshRateMatchs (void) {
+boolean BPMLab::isRefreshRateMatchs(void) {
 	if (isRunning()) {
 		return updateDisplay && !writeData;
 	}
 	return updateDisplay;
 }
 
-void BPMLab::answersRequests (void) {
+void BPMLab::answersRequests(void) {
 	if (Serial.available() > 0) {
 		String command = Serial.readString();
 #if(DEBUG_LEVEL >= 3)
@@ -240,7 +240,7 @@ void BPMLab::answersRequests (void) {
 
 }
 
-void BPMLab::listeningConnections (void) {
+void BPMLab::listeningConnections(void) {
 	if (Serial.available() > 0) {
 		String data = Serial.readString();
 #if(DEBUG_LEVEL >= 3)
@@ -248,6 +248,7 @@ void BPMLab::listeningConnections (void) {
 		DBG_PRINTLN_LEVEL(data);
 #endif
 		if (commandProcessor.isAutorizationCode(data)) {
+			gotoPage(&commPage);
 			connect();
 		} else {
 #if(DEBUG_LEVEL >= 3)
@@ -257,7 +258,7 @@ void BPMLab::listeningConnections (void) {
 	}
 }
 
-DateTime BPMLab::getCurrenteDateTime (boolean throwException) {
+DateTime BPMLab::getCurrenteDateTime(boolean throwException) {
 	int i = 0;
 	DateTime now = rtc.now();
 	while (now.day() > 31) {
@@ -277,7 +278,7 @@ DateTime BPMLab::getCurrenteDateTime (boolean throwException) {
 	return now;
 }
 
-void BPMLab::calculateElapsedTime (DateTime currentDateTime) {
+void BPMLab::calculateElapsedTime(DateTime currentDateTime) {
 	uint32_t t1 = elapsedTime.totalseconds();
 	uint32_t t2 = endTime.totalseconds();
 	int32_t newProgress = map(t1, 0, t2, 0, 100);
@@ -291,25 +292,25 @@ void BPMLab::calculateElapsedTime (DateTime currentDateTime) {
 	elapsedTime = (currentDateTime - startDateTime);
 }
 
-int BPMLab::getCurrentProgress (void) {
+int BPMLab::getCurrentProgress(void) {
 	return currentProgress;
 }
 
-TimeSpan BPMLab::getElapsedTime (void) {
+TimeSpan BPMLab::getElapsedTime(void) {
 	return elapsedTime;
 }
 
-void BPMLab::gotoPage (BPMPage *page) {
+void BPMLab::gotoPage(BPMPage *page) {
 	userInterface.showPage(page);
 }
 
-void BPMLab::update (void) {
+void BPMLab::update(void) {
 	if (!updateDisplay) {
 		updateDisplay = true;
 	}
 }
 
-void BPMLab::write (void) {
+void BPMLab::write(void) {
 	if (!writeData) {
 		writeData = true;
 	}

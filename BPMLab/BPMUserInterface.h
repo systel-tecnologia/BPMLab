@@ -273,6 +273,7 @@ extern BPMLogoPage logoPage;
 extern BPMMainPage mainPage;
 extern BPMProcessPage processPage;
 extern BPMSetupPage setupPage;
+extern BPMCommPage commPage;
 
 #endif
 

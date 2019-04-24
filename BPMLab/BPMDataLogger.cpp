@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <Sd2Card.h>
+#include <SD.h>
 #include <SdFat.h>
 #include <WString.h>
 
@@ -49,54 +50,9 @@ void BPMDataLogger::setup(void) {
 #if(DEBUG_LEVEL >= 3)
 		DBG_PRINTLN_LEVEL("\t\tReading SD Card Information...");
 #endif
-		cardInfo();
 	} else {
 		exceptionHandler.exceptionDetected(CARD_NOT_FOUND);
 	}
-}
-
-void BPMDataLogger::cardInfo(void) {
-
-	Sd2Card card = SD.card;
-	SdVolume volume = SD.volume;
-	SdFile root = SD.root;
-
-	DBG_PRINT_LEVEL("\t\tCard type: ");
-	switch (card.type()) {
-	case SD_CARD_TYPE_SD1:
-		DBG_PRINTLN_LEVEL("SD1");
-		break;
-	case SD_CARD_TYPE_SD2:
-		DBG_PRINTLN_LEVEL("SD2");
-		break;
-	case SD_CARD_TYPE_SDHC:
-		DBG_PRINTLN_LEVEL("SDHC");
-		break;
-	default:
-		DBG_PRINTLN_LEVEL("CARD UNKNOW");
-	}
-
-	DBG_PRINT_LEVEL("\t\tClusters: ");
-	DBG_PRINTLN_LEVEL(volume.clusterCount());
-	DBG_PRINT_LEVEL("\t\tBlocks x Cluster: ");
-	DBG_PRINTLN_LEVEL(volume.blocksPerCluster());
-	DBG_PRINT_LEVEL("\t\tTotal Blocks: ");
-	DBG_PRINTLN_LEVEL(volume.blocksPerCluster() * volume.clusterCount());
-	DBG_PRINT_LEVEL("\t\tVolume type is: FAT");
-	DBG_PRINTLN_LEVEL(volume.fatType(), DEC);
-	uint32_t volumesize = volume.blocksPerCluster();
-	volumesize *= volume.clusterCount();
-	DBG_PRINT_LEVEL("\t\tVolume size (Kb): ");
-	DBG_PRINTLN_LEVEL(volumesize /= 2);
-	DBG_PRINT_LEVEL("\t\tVolume size (Mb): ");
-	DBG_PRINTLN_LEVEL(volumesize /= 1024);
-	DBG_PRINT_LEVEL("\t\tVolume size (Gb):  ");
-	DBG_PRINTLN_LEVEL((float ) volumesize / 1024.0);
-	DBG_PRINTLN_LEVEL("\t\tName\t\tDate\t\t   Size");
-	DBG_PRINTLN_LEVEL(
-			"\t\t-----------------------------------------------------");
-	root.ls(LS_R | LS_DATE | LS_SIZE, 16);
-
 }
 
 void BPMDataLogger::write(char *format, ...) {
@@ -175,24 +131,67 @@ void BPMDataLogger::setFileName(char *format, ...) {
 }
 
 void BPMDataLogger::listFileNames(void) {
-	Serial.println("<listfilenamesstart>");
 	SdFile root = SD.root;
-	root.ls(LS_R | LS_DATE | LS_SIZE, 16);
-	Serial.println("<listfilenamesend>");
+	dir_t* p;
+	root.rewind();
+	while ((p = root.readDirCache())) {
+		// done if past last used entry
+		if (p->name[0] == DIR_NAME_FREE)
+			break;
+
+		// skip deleted entry and entries for . and  ..
+		if (p->name[0] == DIR_NAME_DELETED || p->name[0] == '.')
+			continue;
+
+		// only list subdirectories and files
+		if (!DIR_IS_FILE_OR_SUBDIR(p))
+			continue;
+
+		// print file name with possible blank fill
+		root.printDirName(*p, 12);
+		Serial.print(';');
+
+		// print modify date/time if requested
+		root.printFatDate(p->lastWriteDate);
+		Serial.print(' ');
+		root.printFatTime(p->lastWriteTime);
+
+		// print size if requested
+		if (!DIR_IS_SUBDIR(p)) {
+			Serial.print(';');
+			Serial.print(p->fileSize);
+		}
+		Serial.println(";0");
+	}
+}
+
+void BPMDataLogger::cardInfo(void) {
+	Sd2Card card = SD.card;
+	SdVolume volume = SD.volume;
+	Serial.print(card.type());
+	Serial.print(";");
+	Serial.print(volume.fatType(), DEC);
+	Serial.print(";");
+	Serial.print(card.cardSize() / 2048, DEC);
+	Serial.print(";");
+	Serial.println((card.cardSize() / 2048) / 2, DEC);
+}
+
+void BPMDataLogger::deleteFile(String name) {
+	char * fn = name.c_str();
+	if (SD.exists(fn)) {
+		if (SD.remove(fn)) {
+			Serial.println("FILEDELETED;" + name);
+		}
+	}
 }
 
 void BPMDataLogger::dumpFile(String name) {
-	Serial.println("<dumpfilestart>");
 	char * fn = name.c_str();
 	Serial.println(fn);
 	File file = SD.open((char*) fn, FILE_READ);
-	if (file) {
-		while (file.available()) {
-			Serial.write(file.read());
-		}
-		file.close();
-	} else {
-		Serial.println("<dumpfileerror>");
+	while (file.available()) {
+		Serial.write(file.read());
 	}
-	Serial.println("<dumpfileend>");
+	file.close();
 }
