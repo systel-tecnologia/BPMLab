@@ -39,7 +39,10 @@ GGroup grpMain;
 ListBox drpfiles;
 GLabel lblFileName, lblFileDate, lblFileSize, lblClock;
 GLabel lblLog, lblfs, lblBaud, lblCommBps, lblFile, lblttFileName, lblttFileDate, lblttFileSize; 
-GLabel lblConsole, lblArenaControls, lblConnectionControls; 
+GLabel lblConsole, lblArenaControls, lblConnectionControls;
+GLabel lblttDiskType, lblttDiskSys, lblttDiskSize, lblttDiskUse, lblttFiles, lblttbpmFiles;
+;
+GLabel lblDiskType, lblDiskSys, lblDiskSize, lblDiskUse, lblFiles, lblbpmFiles;
 GButton btnCommPort, btnDownload, btnDelete; 
 GDropList drpCommPort;  
 GSlider sdrBps; 
@@ -104,7 +107,7 @@ void reset() {
   baud = bpmConnection.baudRates()[5];  
   portName = drpCommPort.getSelectedText();
   selectedFile = null;
-  formIndex = 2;
+  formIndex = -1;
 
   // Controls
   txaLog.setText("");
@@ -114,6 +117,12 @@ void reset() {
   lblFileName.setText("");
   lblFileDate.setText("");
   lblFileSize.setText("");
+  lblDiskType.setText("");
+  lblDiskSys.setText(""); 
+  lblDiskSize.setText("");
+  lblDiskUse.setText("");
+  lblFiles.setText("");
+  lblbpmFiles.setText("");
 
   btnDelete.setEnabled(false);
   btnDownload.setEnabled(false);
@@ -209,7 +218,19 @@ public void updateFileListBox() {
     drpfiles.addItem(name, file);
     drpfiles.getItem(name).put("color", new CColor().setForeground(0xffff8800));
   }
-  kb.setValue(bpmFileSystem.fsUsed / bpmFileSystem.fsSize);
+  kb.setValue((bpmFileSystem.fsUsed + 1) / bpmFileSystem.fsSize);
+  lblFileName.setText("");
+  lblFileDate.setText("");
+  lblFileSize.setText("");
+
+  lblDiskType.setText(bpmFileSystem.volType);
+  lblDiskSys.setText(bpmFileSystem.fatType); 
+  println();
+  lblDiskSize.setText(bpmFileSystem.fsSize + "MB");
+  Float f = (bpmFileSystem.fsUsed + 1);
+  lblDiskUse.setText(f.intValue() + "MB");
+  lblFiles.setText(bpmFileSystem.fsCountFiles + "");
+  lblbpmFiles.setText(bpmFileSystem.fsBmpFiles +"");
 }
 
 public void btnCommPortClick(GButton source, GEvent event) {
@@ -244,6 +265,29 @@ public void btnCommPortClick(GButton source, GEvent event) {
       exit();
     }
   }
+}
+
+public void btnStartClick(GButton source, GEvent event) {
+  if (bpmConnection.isConnected()) {
+    int reply = G4P.selectOption(this, "Start Process?", "Confirm", G4P.WARNING, G4P.YES_NO);
+    if (reply == G4P.OK) {
+      cursor(WAIT);
+      bpmConnection.sendCommand(BPMConnection.CMD_PROCESS_START);
+      while (!bpmConnection.isCommandDataFound(BPMConnection.CMD_PROCESS_START)) {
+        delay(100);
+      }
+      ArrayList<String> list = bpmConnection.getDataList(BPMConnection.CMD_PROCESS_START);
+      startProcess(list);
+      cursor(ARROW);
+    }
+  }
+}
+
+public void startProcess(ArrayList<String> list) {
+  String data = list.get(0);
+  String tokens[] = data.split(";");
+  printArray(tokens);
+  formIndex = START_FORM;
 }
 
 public void btnDeleteClick(GButton source, GEvent event) {
@@ -329,7 +373,7 @@ public void createControls() {
 
   //File System Group
   lblfs = new GLabel(this, 980, 15, 190, 20);
-  lblfs.setText("File System");
+  lblfs.setText("Disk");
   lblfs.setTextBold();
   lblfs.setLocalColorScheme(GCScheme.GREEN_SCHEME);
 
@@ -375,7 +419,7 @@ public void createControls() {
   btnCommPort.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnCommPort.addEventHandler(this, "btnCommPortClick");
 
-  kb = new GKnob(this, 1020, 45, 200, 190, 0.6f);
+  kb = new GKnob(this, 1075, 50, 175, 175, 0.6f);
   kb.setTurnRange(100, 100); 
   kb.setLocalColorScheme(5); 
   kb.setOpaque(false); 
@@ -404,6 +448,62 @@ public void createControls() {
     .setColorForeground(color(255, 100, 0));
   drpfiles.getCaptionLabel().set("BPM Files");
   drpfiles.getCaptionLabel().setColor(0xffff0000);
+
+  // Disk Group
+  lblttDiskType = new GLabel(this, 985, 35, 190, 20);
+  lblttDiskType.setText("Type:");
+  lblttDiskType.setTextBold();
+  lblttDiskType.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttDiskSys = new GLabel(this, 985, 55, 190, 20);
+  lblttDiskSys.setText("System:");
+  lblttDiskSys.setTextBold();
+  lblttDiskSys.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttDiskSize = new GLabel(this, 985, 75, 190, 20);
+  lblttDiskSize.setText("Size:");
+  lblttDiskSize.setTextBold();
+  lblttDiskSize.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttDiskUse = new GLabel(this, 985, 95, 190, 20);
+  lblttDiskUse.setText("Used:");
+  lblttDiskUse.setTextBold();
+  lblttDiskUse.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblDiskType = new GLabel(this, 1022, 35, 190, 20);
+  lblDiskType.setText("");
+  lblDiskType.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblDiskSys = new GLabel(this, 1035, 55, 190, 20);
+  lblDiskSys.setText("");
+  lblDiskSys.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblDiskSize = new GLabel(this, 1020, 75, 190, 20);
+  lblDiskSize.setText("");
+  lblDiskSize.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblDiskUse = new GLabel(this, 1022, 95, 190, 20);
+  lblDiskUse.setText("");
+  lblDiskUse.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttFiles = new GLabel(this, 985, 200, 190, 20);
+  lblttFiles.setText("Total Files:");
+  lblttFiles.setTextBold();
+  lblttFiles.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttbpmFiles = new GLabel(this, 985, 220, 190, 20);
+  lblttbpmFiles.setText("BPM Files:");
+  lblttbpmFiles.setTextBold();
+  lblttbpmFiles.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblFiles = new GLabel(this, 1052, 200, 190, 20);
+  lblFiles.setText("");
+  lblFiles.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblbpmFiles = new GLabel(this, 1052, 220, 190, 20);
+  lblbpmFiles.setText("");
+  lblbpmFiles.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
 
   //File Group
   lblFile = new GLabel(this, 980, 560, 190, 20);
@@ -460,7 +560,7 @@ public void createControls() {
 
   btnSetup = new GButton(this, 55, 355, 160, 40);
   btnSetup.setText("Setup");
-  btnSetup.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+  btnSetup.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
   btnSetup.addEventHandler(this, "btnSetupClick");
 
   btnConnect = new GButton(this, 55, 410, 160, 40);

@@ -21,6 +21,8 @@ public class BPMConnection {
 
   public static final String CMD_DOWNLOAD_FILE = "DOWNLOAD";
 
+  public static final String  CMD_PROCESS_START = "PROCESSINIT";
+
   PApplet owner;
   Serial device;  // Create object from Serial class
 
@@ -102,14 +104,14 @@ public class BPMConnection {
   }
 
   public void closeConnection() {
-  /*  if (device != null) {
-      if (device.active()) {
-        sendCommand(CMD_DISCONNECT);
-        device.stop();
-        device.clear();
-        connected = false;
-      }
-    }*/
+    /*  if (device != null) {
+     if (device.active()) {
+     sendCommand(CMD_DISCONNECT);
+     device.stop();
+     device.clear();
+     connected = false;
+     }
+     }*/
   }
 
   public void sendCommand(String command) {

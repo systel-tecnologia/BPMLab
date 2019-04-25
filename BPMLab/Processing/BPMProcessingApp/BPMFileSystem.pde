@@ -31,9 +31,11 @@ public class BPMFileSystem {
 
   int fsCountFiles = 0;
 
-  String volType = "Micro SD";
+  int fsBmpFiles = 0;
 
-  String fatType = "FAT 16";
+  String volType = "";
+
+  String fatType = "";
 
   boolean openned = false;
 
@@ -46,24 +48,44 @@ public class BPMFileSystem {
 
 
   public void openBPMFileSystem(ArrayList<String> dataFileSystem) {
-    String data = dataFileSystem.get(0);
-    String tokens[] = data.split(";");
-    fsSize = new Float(tokens[2]);
-    fsUsed = new Float(tokens[3]);
+    if (!dataFileSystem.isEmpty()) {
+      String data = dataFileSystem.get(0);
+      String tokens[] = data.split(";");
+      if (tokens.length >= 4) {
+        volType = "SD1"; 
+        if (tokens[1].equals("2")) {
+          volType = "SD2";
+        } 
+        if (tokens[1].equals("3")) {
+          volType = "SDHC";
+        } 
+        fatType = "FAT" + tokens[1];
+        fsSize = new Float(tokens[2]);
+        fsUsed = new Float(tokens[3]);
+      }
+    }
     openned = true;
   }
 
   public void loadFiles(ArrayList<String> dataFiles) {
     fsCountFiles = 0;
+    fsBmpFiles = 0;
     for (String data : dataFiles) {
       BPMFile file = new BPMFile(data);
       fsUsed += new Float(file.size);
       if (data.contains(".CSV")) {
         files.add(file);
+        fsBmpFiles++;
       }
       fsCountFiles++;
     }
     fsUsed = (fsUsed / 2048);
+    Collections.sort(files, new Comparator<BPMFile>() {
+      public int compare(BPMFile o1, BPMFile o2) {
+        return o1.name.compareTo(o2.name);
+      }
+    }     
+    );
   }
 
   public boolean deleteFile(BPMFile file, ArrayList<String> deleteFileData) {

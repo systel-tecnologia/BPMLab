@@ -26,9 +26,12 @@ class BPMCommandProcessor {
 
 		// library-accessible "protected" interface
 	protected:
+		void executeStartProccessCommand(void);
 
 		// library-accessible "private" interface
 	private:
+
+		boolean startProcess = false;
 };
 
 #endif
