@@ -23,6 +23,8 @@ public class BPMConnection {
 
   public static final String  CMD_PROCESS_START = "PROCESSINIT";
 
+  public static final String  CMD_PROCESS_CANCEL = "PROCESSCANCEL";
+
   PApplet owner;
   Serial device;  // Create object from Serial class
 
@@ -80,15 +82,37 @@ public class BPMConnection {
     }
 
     if (!isErrorFound()) {
+
+      // Connection
       if (!isConnected()) {
         connect(buffer);
       } 
+
+      // Commands
       if (isCommandSended()) {
         dataReaded += (buffer + "\n");
       } else {
         dataReaded = buffer;
       }
+
+      // Arena
+      checkStartedProcess(buffer);
     }
+  }
+
+  private void checkStartedProcess(String data) {
+    if (data.contains("Open File")) {
+      processStarted = true;
+      txaLog.appendText("Processing::BPM Process Start");
+      txaLog.appendText("Processing::Running");
+    } else if (data.contains("Close File")) {
+      processStarted = false;
+      txaLog.appendText("Processing::BPM Process Stop");
+    }
+  }
+
+  public boolean isProcessStarted() {
+    return processStarted;
   }
 
   public String getData() {
@@ -200,37 +224,5 @@ public class BPMConnection {
         txaLog.appendText("Processing::BPMLab Dashboard Connected");
       }
     }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  public boolean isProcessStarted() {
-    return processStarted;
-  }
-
-  private boolean isStartedProcess(String data) {
-    if (data.indexOf("Open File") >= 0) {
-      processStarted = true;
-    } else if (data.indexOf("Close File") >= 0) {
-      processStarted = false;
-    }
-    return processStarted;
   }
 }

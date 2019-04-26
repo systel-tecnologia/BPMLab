@@ -190,7 +190,14 @@ void BPMLab::connect(void) {
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL("\tBPM Connection Success. Wait for commands...");
 #endif
-	state = CONNECTED;
+	connected = true;
+}
+
+void BPMLab::disconnect(void) {
+#if(DEBUG_LEVEL >= 3)
+	DBG_PRINTLN_LEVEL("\tBPM Disconnected Success...");
+#endif
+	connected = false;
 }
 
 void BPMLab::close(void) {
@@ -217,7 +224,7 @@ boolean BPMLab::isWaitConnection() {
 }
 
 boolean BPMLab::isConnected() {
-	return (state == CONNECTED);
+	return connected;
 }
 
 boolean BPMLab::isRefreshRateMatchs(void) {

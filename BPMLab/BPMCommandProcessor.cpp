@@ -11,10 +11,6 @@
 #include "BPMUserInterface.h"
 #include "BPMCommandProcessor.h"
 
-void softReset(void) {
-
-}
-
 boolean BPMCommandProcessor::isAutorizationCode(String data) {
 	if (data.equals(START_CODE)) {
 		return true;
@@ -56,11 +52,16 @@ void BPMCommandProcessor::execute(String command) {
 	}
 
 	if (command.startsWith("DISCONNECT")) {
-		softReset();
+		bpmLab.disconnect();
 	}
 
 	if (command.startsWith("PROCESSINIT")) {
 		executeStartProccessCommand();
+	}
+
+	if (command.startsWith("PROCESSCANCEL")) {
+		bpmLab.cancel();
+		Serial.println("OK");
 	}
 
 	Serial.println(command + " END");

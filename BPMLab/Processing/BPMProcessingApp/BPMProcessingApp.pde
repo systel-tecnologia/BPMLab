@@ -24,7 +24,6 @@ public static final int DONE_FORM = 4;
 public static final int CANCEL_FORM = 5;
 
 
-
 // Processors
 private BPMConnection bpmConnection;
 private BPMArena bpmArena;
@@ -32,7 +31,7 @@ private BPMDataFileReader bpmDataFileReader;
 private BPMFileSystem bpmFileSystem;
 
 // Controls
-PFont font;
+PFont font0, font1, font2, font3;
 GKnob kb;
 ControlP5 cp5;
 GGroup grpMain;
@@ -41,7 +40,8 @@ GLabel lblFileName, lblFileDate, lblFileSize, lblClock;
 GLabel lblLog, lblfs, lblBaud, lblCommBps, lblFile, lblttFileName, lblttFileDate, lblttFileSize; 
 GLabel lblConsole, lblArenaControls, lblConnectionControls;
 GLabel lblttDiskType, lblttDiskSys, lblttDiskSize, lblttDiskUse, lblttFiles, lblttbpmFiles;
-;
+GLabel lblTimer, lblPecentual, lblState;
+
 GLabel lblDiskType, lblDiskSys, lblDiskSize, lblDiskUse, lblFiles, lblbpmFiles;
 GButton btnCommPort, btnDownload, btnDelete; 
 GDropList drpCommPort;  
@@ -56,14 +56,45 @@ int baud = 0;
 String portName = "";
 String buffer = "";
 String log = " ";
-int formIndex = 0;
+int formIndex = -1;
 PImage forms[] = {};
+LocalDateTime startTime;
+BPMConfig config;
 
 BPMFile selectedFile;
 
+
+class BPMConfig {
+
+  long baudrate;
+
+  int fileIndex;
+
+  int cronMode;
+
+  long secs;
+
+  int modify;
+
+  BPMConfig() {
+  }
+
+  BPMConfig(String data) {
+    String tokens[] = data.split(";");
+    baudrate = Long.parseLong(tokens[0]);
+    fileIndex = Integer.parseInt(tokens[1]);
+    cronMode = Integer.parseInt(tokens[2]);
+    secs = Long.parseLong(tokens[3]);
+    modify = Integer.parseInt(tokens[4]);
+  }
+}
+
 void setup() {
   size(1270, 720, JAVA2D);
-  font = createFont("Arial", 6);
+  font0 = createFont("Arial", 16);
+  font1 = createFont("Arial", 18);
+  font2 = createFont("Arial", 25);
+  font3 = createFont("Arial", 35);
 
   // Processosrs
   bpmArena = new BPMArena(this);
@@ -108,6 +139,8 @@ void reset() {
   portName = drpCommPort.getSelectedText();
   selectedFile = null;
   formIndex = -1;
+  startTime = LocalDateTime.now();
+  config = new BPMConfig();
 
   // Controls
   txaLog.setText("");
@@ -123,6 +156,9 @@ void reset() {
   lblDiskUse.setText("");
   lblFiles.setText("");
   lblbpmFiles.setText("");
+  lblState.setText("");
+  lblTimer.setText("00:00:00");
+  lblPecentual.setText("0%");
 
   btnDelete.setEnabled(false);
   btnDownload.setEnabled(false);
@@ -134,6 +170,9 @@ void reset() {
   btnCancel.setVisible(false);
   btnDone.setVisible(false);
   lblClock.setVisible(false);
+  lblTimer.setVisible(false);
+  lblPecentual.setVisible(false);
+  lblState.setVisible(false);
 
   // Processsors
   bpmArena.position(0, 0, 0, 0, 0, 0, 0);
@@ -156,6 +195,27 @@ void draw() {
     lblClock.setVisible(formIndex == MAIN_FORM);
     btnCancel.setVisible(formIndex == START_FORM);
     btnDone.setVisible(formIndex == DONE_FORM || formIndex == CANCEL_FORM);
+    lblTimer.setVisible(formIndex == START_FORM || formIndex == DONE_FORM || formIndex == CANCEL_FORM);
+    lblPecentual.setVisible(formIndex == START_FORM || formIndex == DONE_FORM || formIndex == CANCEL_FORM);
+    lblState.setVisible(formIndex == START_FORM || formIndex == DONE_FORM || formIndex == CANCEL_FORM);
+    if (formIndex == START_FORM) {
+      lblTimer.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+      lblPecentual.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+      lblState.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+      lblState.setText("Started");
+    }
+    if (formIndex == DONE_FORM) {
+      lblTimer.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+      lblPecentual.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+      lblState.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+      lblState.setText("Done");
+    }
+    if (formIndex == CANCEL_FORM) {
+      lblTimer.setLocalColorScheme(GCScheme.RED_SCHEME);
+      lblPecentual.setLocalColorScheme(GCScheme.RED_SCHEME);
+      lblState.setLocalColorScheme(GCScheme.RED_SCHEME);
+      lblState.setText("Canceled");
+    }
   }
 
   // Move Arena
@@ -211,8 +271,8 @@ public void loadFileList() {
 }
 
 public void updateFileListBox() {
-  ArrayList<BPMFile> files = bpmFileSystem.getFileNames();
   drpfiles.clear();
+  ArrayList<BPMFile> files = bpmFileSystem.getFileNames();
   for (BPMFile file : files) {
     String name = file.name + "     " + file.date + "     " + file.size + " KB";
     drpfiles.addItem(name, file);
@@ -225,7 +285,6 @@ public void updateFileListBox() {
 
   lblDiskType.setText(bpmFileSystem.volType);
   lblDiskSys.setText(bpmFileSystem.fatType); 
-  println();
   lblDiskSize.setText(bpmFileSystem.fsSize + "MB");
   Float f = (bpmFileSystem.fsUsed + 1);
   lblDiskUse.setText(f.intValue() + "MB");
@@ -285,9 +344,42 @@ public void btnStartClick(GButton source, GEvent event) {
 
 public void startProcess(ArrayList<String> list) {
   String data = list.get(0);
-  String tokens[] = data.split(";");
-  printArray(tokens);
+  config = new BPMConfig(data);
+  startTime = LocalDateTime.now();
   formIndex = START_FORM;
+  txaLog.appendText("Processing::BPMLab process started...");
+}
+
+public void btnCancelClick(GButton button, GEvent event) {
+  if (bpmConnection.isConnected()) {
+    int reply = G4P.selectOption(this, "Cancel Process?", "Confirm", G4P.WARNING, G4P.YES_NO);
+    if (reply == G4P.OK) {
+      cursor(WAIT);
+      bpmConnection.sendCommand(BPMConnection.CMD_PROCESS_CANCEL);
+      while (!bpmConnection.isCommandDataFound(BPMConnection.CMD_PROCESS_CANCEL)) {
+        delay(100);
+      }
+      ArrayList<String> list = bpmConnection.getDataList(BPMConnection.CMD_PROCESS_CANCEL);
+      cancelProcess(list);
+      cursor(ARROW);
+    }
+  }
+}
+
+public void btnDoneClick(GButton button, GEvent event) {
+  loadFileList();
+  bpmArena.position(0, 0, 0, 0, 0, 0, 0);
+  formIndex = MAIN_FORM;
+}
+
+public void cancelProcess(ArrayList<String> data) {
+  String value = "";
+  for (String l : data) {
+    value += l;
+  }
+  if (value.contains("OK")) {
+    formIndex = 5;
+  }
 }
 
 public void btnDeleteClick(GButton source, GEvent event) {
@@ -355,13 +447,14 @@ public void drpCommPortSelect(GDropList source, GEvent event) {
 public void createControls() {
   txaLog = new GTextArea(this, 20, 520, 930, 180, G4P.SCROLLBARS_VERTICAL_ONLY);
   txaLog.setText("");
+  txaLog.setLocalColor(70, 60);
   txaLog.setLocalColorScheme(GCScheme.GREEN_SCHEME);
   txaLog.setOpaque(true);
   txaLog.setTextEditEnabled(false);
 
   //Console Group
   lblConsole = new GLabel(this, 20, 155, 190, 20);
-  lblConsole.setText("Console");
+  lblConsole.setText("Remote Console");
   lblConsole.setTextBold();
   lblConsole.setLocalColorScheme(GCScheme.GREEN_SCHEME);
 
@@ -549,8 +642,10 @@ public void createControls() {
   btnDelete.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnDelete.addEventHandler(this, "btnDeleteClick");
 
-  lblClock = new GLabel(this, 80, 265, 200, 30);
+  lblClock = new GLabel(this, 50, 265, 172, 30);
   lblClock.setText("");
+  lblClock.setTextAlign(GAlign.CENTER, GAlign.CENTER);
+  lblClock.setFont(font0.getFont());
   lblClock.setLocalColorScheme(GCScheme.GREEN_SCHEME);
 
   btnStart = new GButton(this, 55, 300, 160, 40);
@@ -566,7 +661,6 @@ public void createControls() {
   btnConnect = new GButton(this, 55, 410, 160, 40);
   btnConnect.setText("Connect");
   btnConnect.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
-  btnConnect.addEventHandler(this, "btnConnectClick");
 
   btnCancel = new GButton(this, 55, 410, 160, 40);
   btnCancel.setText("Cancel");
@@ -577,6 +671,20 @@ public void createControls() {
   btnDone.setText("Done");
   btnDone.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnDone.addEventHandler(this, "btnDoneClick");
+
+  lblTimer= new GLabel(this, 85, 200, 200, 30);
+  lblTimer.setFont(font2.getFont());
+  lblTimer.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+
+  lblPecentual = new GLabel(this, 75, 290, 125, 30);
+  lblPecentual.setFont(font3.getFont());
+  lblPecentual.setTextAlign(GAlign.CENTER, GAlign.CENTER);
+  lblPecentual.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+
+  lblState = new GLabel(this, 75, 340, 125, 30);
+  lblState.setFont(font1.getFont());
+  lblState.setTextAlign(GAlign.CENTER, GAlign.CENTER);
+  lblState.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
 }
 
 
@@ -593,12 +701,3 @@ void controlEvent(ControlEvent event) {
     selectedFile = file;
   }
 }
-
-/*  if (!bpmConnection.isConnected()) {
- bpmConnection.connect(data);
- }*/
-/*  if (device != null) {
- if (!bpmConnection.isConnected()) {
- bpmConnection.connect(device.readString());
- }
- }*/

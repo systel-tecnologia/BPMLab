@@ -77,7 +77,7 @@ public class BPMArena {
     float dy = targetY - ey;
     ey += dy * easing;
 
-    textFont(font, 20);
+    textFont(font1, 20);
     text(t, 300, 390);
     text(p, 300, 420);
     text(h, 300, 450);

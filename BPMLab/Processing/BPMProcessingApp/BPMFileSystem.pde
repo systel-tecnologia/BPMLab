@@ -68,6 +68,7 @@ public class BPMFileSystem {
   }
 
   public void loadFiles(ArrayList<String> dataFiles) {
+    files.clear();
     fsCountFiles = 0;
     fsBmpFiles = 0;
     for (String data : dataFiles) {

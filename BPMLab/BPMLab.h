@@ -63,6 +63,8 @@ class BPMLab {
 
 		void connect (void);
 
+		void disconnect (void);
+
 		void close (void);
 
 		void reset (void);
@@ -118,6 +120,8 @@ class BPMLab {
 		boolean writeData = false;
 
 		boolean updateDisplay = false;
+
+		boolean connected = false;
 
 		int32_t currentProgress = 0;
 

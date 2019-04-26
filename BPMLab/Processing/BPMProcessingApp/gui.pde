@@ -16,12 +16,31 @@
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.time.*;
+import java.time.temporal.*;
 
 
 public void rtc(GTimer source) { //_CODE_:clock:543544:
-  SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+  SimpleDateFormat fmdt = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+  SimpleDateFormat fmtm = new SimpleDateFormat("00:mm:ss");
   Date dt = new Date(System.currentTimeMillis());
-  lblClock.setText(fmt.format(dt));
+  lblClock.setText(fmdt.format(dt));
+  if (startTime != null && formIndex == START_FORM) {
+    Duration duration = Duration.between(LocalDateTime.now(), startTime);
+    Long period = Math.abs(duration.toMillis()); 
+    Long seconds =  (Long.divideUnsigned(period, new Long(1000)));
+    if (config.secs > 0) {
+      Float a = new Float(seconds);
+      Float b = new Float(config.secs);
+      Float c =  (a / b);
+      Float d = (c * 100);
+      lblPecentual.setText(d.intValue() + "%");
+      if (d.intValue() == 100) {
+        formIndex = DONE_FORM;
+      }
+    }
+    lblTimer.setText(fmtm.format(period));
+  }
 } //_CODE_:clock:543544:
 
 
