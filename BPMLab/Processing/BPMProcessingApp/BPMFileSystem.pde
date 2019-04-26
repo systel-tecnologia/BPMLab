@@ -82,7 +82,7 @@ public class BPMFileSystem {
     }
     fsUsed = (fsUsed / 2048);
     Collections.sort(files, new Comparator<BPMFile>() {
-      public int compare(BPMFile o1, BPMFile o2) {
+      public int compare(BPMFile o2, BPMFile o1) {
         return o1.name.compareTo(o2.name);
       }
     }     
@@ -100,8 +100,12 @@ public class BPMFileSystem {
 
   public boolean saveBPMFile(ArrayList<String> receivedFileData, File file) {
     PrintWriter output = createWriter(file.getAbsolutePath());
+    int i = 0;
     for (String data : receivedFileData) {
-      output.println(data);
+      if (i > 0 ) {
+        output.println(data);
+      }
+      i++;
     }
     output.flush(); // Write the remaining data
     output.close(); // Finish the file

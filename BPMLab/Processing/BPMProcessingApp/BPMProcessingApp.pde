@@ -13,6 +13,11 @@ import java.util.*;
 import java.awt.Rectangle;
 import g4p_controls.*;
 import controlP5.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.time.*;
+import java.time.temporal.*;
 
 // Static Definition
 public static final int BPM_ALPHA = 30;
@@ -43,13 +48,14 @@ GLabel lblttDiskType, lblttDiskSys, lblttDiskSize, lblttDiskUse, lblttFiles, lbl
 GLabel lblTimer, lblPecentual, lblState;
 
 GLabel lblDiskType, lblDiskSys, lblDiskSize, lblDiskUse, lblFiles, lblbpmFiles;
-GButton btnCommPort, btnDownload, btnDelete; 
+GButton btnCommPort, btnDownload, btnDelete, btnAnalise; 
 GDropList drpCommPort;  
 GSlider sdrBps; 
 GTextArea txaLog; 
 PImage rtcError, sdCardError;
 PImage mainForm, cancelForm, startForm, doneForm;
 GButton btnStart, btnSetup, btnCancel, btnDone, btnConnect;
+
 
 // Vars
 int baud = 0;
@@ -58,9 +64,10 @@ String buffer = "";
 String log = " ";
 int formIndex = -1;
 PImage forms[] = {};
+String params[];
 LocalDateTime startTime;
 BPMConfig config;
-
+BPMAnalysys analysys;
 BPMFile selectedFile;
 
 
@@ -96,6 +103,8 @@ void setup() {
   font2 = createFont("Arial", 25);
   font3 = createFont("Arial", 35);
 
+  params = loadStrings("params.txt");
+
   // Processosrs
   bpmArena = new BPMArena(this);
   bpmConnection = new BPMConnection(this);
@@ -113,6 +122,7 @@ void setup() {
   grpMain = new GGroup(this);  
   createControls();
   createGUI();
+  analyseWindow.setVisible(false);
   viewConnection.setAlpha(BPM_ALPHA, true);
   viewArena.setAlpha(BPM_ALPHA, true);
   viewConsole.setAlpha(BPM_ALPHA, true);
@@ -161,6 +171,7 @@ void reset() {
   lblPecentual.setText("0%");
 
   btnDelete.setEnabled(false);
+  btnAnalise.setEnabled(false);
   btnDownload.setEnabled(false);
   btnConnect.setEnabled(false);
 
@@ -221,7 +232,6 @@ void draw() {
   // Move Arena
   if (bpmConnection.isProcessStarted()) {
     DataLocation data = bpmDataFileReader.processData(bpmConnection.getData());
-    bpmArena.setTitle(data.getFileName());
     if (data.x > 0 &&  data.y > 0) {
       bpmArena.holePoke(data.hp);
       bpmArena.position(data.x, data.y, data.z, data.w, data.h, data.l, data.hp);
@@ -343,6 +353,9 @@ public void btnStartClick(GButton source, GEvent event) {
 }
 
 public void startProcess(ArrayList<String> list) {
+  btnDelete.setEnabled(false);
+  btnAnalise.setEnabled(false);
+  btnDownload.setEnabled(false);
   String data = list.get(0);
   config = new BPMConfig(data);
   startTime = LocalDateTime.now();
@@ -368,6 +381,9 @@ public void btnCancelClick(GButton button, GEvent event) {
 
 public void btnDoneClick(GButton button, GEvent event) {
   loadFileList();
+  btnDelete.setEnabled(true);
+  btnAnalise.setEnabled(true);
+  btnDownload.setEnabled(true);
   bpmArena.position(0, 0, 0, 0, 0, 0, 0);
   formIndex = MAIN_FORM;
 }
@@ -405,8 +421,14 @@ public void btnDeleteClick(GButton source, GEvent event) {
 
 public void btnDownloadClick(GButton source, GEvent event) {
   if (selectedFile != null) {
-    String repo = G4P.selectFolder("Repository");
-    if (repo != null) {
+
+    String repo = getParamValue("REPO");
+    if (repo.isEmpty()) {
+      repo = G4P.selectFolder("Repository");
+      saveParams();
+    }
+
+    if (repo != null && !repo.isEmpty()) {
       File file = new File(repo, selectedFile.name);
       boolean doDownLoad = true;
       if (file.exists()) {
@@ -432,6 +454,37 @@ public void btnDownloadClick(GButton source, GEvent event) {
     G4P.showMessage(this, "No selected file!", "Error", G4P.ERROR);
   }
 }
+
+public void btnAnalyzeClick(GButton button, GEvent event) { 
+  if (selectedFile != null) {
+
+    String repo = getParamValue("REPO");
+    if (repo.isEmpty()) {
+      repo = G4P.selectFolder("Repository");
+      saveParams();
+    }
+    if (repo != null && !repo.isEmpty()) {
+      File file = new File(repo, selectedFile.name);
+      if (file.exists()) {
+        cursor(WAIT);
+        analysys = bpmDataFileReader.analyzeBPMFile(file);
+        txaLog.appendText(analysys.transitions + " Transitions Found");
+        txaLog.appendText(analysys.holePokes + " HolePokes Found");
+        txaLog.appendText(analysys.rearings + " Rearings Found");
+        cursor(ARROW);
+        analyseWindow.setVisible(true);
+      } else {
+        G4P.showMessage(this, "Local File " + selectedFile.name + " not found. Try download before.", "Error", G4P.ERROR);
+      }
+    } else {
+      G4P.showMessage(this, "No selected file!", "Error", G4P.ERROR);
+    }
+  }
+}
+
+public void btnSetupClick(GButton button, GEvent event) { /* code */
+}
+
 
 // Update delay value
 public void sdrBpsChange(GSlider source, GEvent event) {
@@ -597,7 +650,6 @@ public void createControls() {
   lblbpmFiles.setText("");
   lblbpmFiles.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-
   //File Group
   lblFile = new GLabel(this, 980, 560, 190, 20);
   lblFile.setText("Selected File");
@@ -631,13 +683,17 @@ public void createControls() {
   lblFileSize.setText("");
   lblFileSize.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-
-  btnDownload = new GButton(this, 990, 650, 110, 30);
+  btnDownload = new GButton(this, 990, 650, 85, 30);
   btnDownload.setText("Download");
   btnDownload.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnDownload.addEventHandler(this, "btnDownloadClick");
 
-  btnDelete = new GButton(this, 1120, 650, 110, 30);
+  btnAnalise = new GButton(this, 1082, 650, 85, 30);
+  btnAnalise.setText("Analyze");
+  btnAnalise.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+  btnAnalise.addEventHandler(this, "btnAnalyzeClick");
+
+  btnDelete = new GButton(this, 1175, 650, 85, 30);
   btnDelete.setText("Delete");
   btnDelete.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnDelete.addEventHandler(this, "btnDeleteClick");
@@ -697,7 +753,51 @@ void controlEvent(ControlEvent event) {
     lblFileDate.setText(file.date);
     lblFileSize.setText(file.size + "Kb");
     btnDelete.setEnabled(true);
+    btnAnalise.setEnabled(true);
     btnDownload.setEnabled(true);
     selectedFile = file;
   }
+}
+
+public void updateTimes() {
+  SimpleDateFormat fmdt = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+  SimpleDateFormat fmtm = new SimpleDateFormat("00:mm:ss");
+  Date dt = new Date(System.currentTimeMillis());
+  lblClock.setText(fmdt.format(dt));
+  if (startTime != null && formIndex == START_FORM) {
+    Duration duration = Duration.between(LocalDateTime.now(), startTime);
+    Long period = Math.abs(duration.toMillis()); 
+    Long seconds =  (Long.divideUnsigned(period, new Long(1000)));
+    if (config.secs > 0) {
+      Float a = new Float(seconds);
+      Float b = new Float(config.secs);
+      Float c =  (a / b);
+      Float d = (c * 100);
+      lblPecentual.setText(d.intValue() + "%");
+      if (d.intValue() == 100) {
+        formIndex = DONE_FORM;
+      }
+    }
+    lblTimer.setText(fmtm.format(period));
+  }
+}
+
+
+public String getParamValue(String name) {
+  for (String param : params) {
+    String tokens[] = param.split("=");
+    for (String value : tokens) {
+      if (value.equals(name)) {
+        if (tokens.length == 1 || tokens[1] == null) {
+          return "";
+        } else {
+          return tokens[1];
+        }
+      }
+    }
+  }
+  return "";
+}
+
+public void saveParams() {
 }

@@ -6,10 +6,24 @@
  Author: Daniel Valentin - dtvalentin@gmail.com
  */
 
+class BPMRoute {
+  BPMRoute(String quadA, String quadB) {
+    from = quadA;
+    to = quadB;
+  }
+  String from;
+  String to;
+}
+
+class BPMAnalysys {
+  int registers = 0;
+  int transitions = 0;
+  int holePokes = 0;
+  int rearings = 0;
+  List<BPMRoute> routes = new ArrayList<BPMRoute>();
+}
+
 public class DataLocation {
-  private String fileName = "";
-  private String date = "";
-  private String time = "";
   private int x;
   private int y;
   private int z;
@@ -17,47 +31,6 @@ public class DataLocation {
   private int w;
   private int l;
   private int hp;
-
-  public String getFileName() { 
-    return fileName;
-  };
-
-  public String getDate() { 
-    return date;
-  };
-
-  public String getTime() { 
-    return time;
-  };
-
-  public int getX() { 
-    return x;
-  };
-
-  public int getY() { 
-    return y;
-  };
-
-  public int getZ() { 
-    return z;
-  };
-
-  public int getH() { 
-    return h;
-  };
-
-  public int getW() { 
-    return w;
-  };
-  
-  public int getL() { 
-    return l;
-  };
-
-
-  public int getHp() { 
-    return hp;
-  };
 }
 
 public class BPMDataFileReader {
@@ -84,11 +57,8 @@ public class BPMDataFileReader {
 
   private DataLocation extractDataLocation(String data) {
     DataLocation dataLocation = new DataLocation();
-    dataLocation.fileName = fileName;
     String[] parts = data.split(";");
     if (parts.length == 9 && !parts[0].equals("DATE")) {
-      dataLocation.date = parts[0];
-      dataLocation.time = parts[1];
       dataLocation.x = parseInt(parts[2]);
       dataLocation.y = parseInt(parts[3]);
       dataLocation.z = parseInt(parts[4]);
@@ -111,5 +81,75 @@ public class BPMDataFileReader {
         }
       }
     }
+  }
+
+
+  public BPMAnalysys analyzeBPMFile(File file) {
+    txaLog.appendText("Processing:: Analyzing "+ file.getName()  +" File...");
+
+    BPMAnalysys analysys = new BPMAnalysys();
+    int transitions = 0;
+    int hps = 0;
+    int rgs = 0;
+    String quad = BPMArena.QUAD_A;
+    String hp = "00";
+    String rg = "-01";
+    String table[] = loadStrings(file.getAbsolutePath());
+
+    int i = 0;
+    for (String row : table) {
+      if (i > 0 ) {
+        String cols[] = row.split(";");
+
+        // Analyzes Transitions
+        String newQuad = findQuad(cols[2], cols[3], quad);
+        if (!quad.equals(newQuad)) {
+          BPMRoute route = new BPMRoute(quad, newQuad);
+          analysys.routes.add(route);
+          transitions++;
+        }
+        quad = newQuad;
+
+        // Analyzys HP
+        String newHp = cols[8]; 
+        if (!newHp.equals(hp)) {
+          if (!newHp.equals("00")) {
+            hps++;
+          }
+        }
+        hp = newHp;
+
+        // Analyzys Rearing
+        String newRg = cols[4];
+        if (!rg.equals("-01")) {
+          if (newRg.equals("-01")) {
+            rgs++;
+          }
+        }
+      }
+      i++;
+    }
+    analysys.rearings = rgs;
+    analysys.holePokes = hps;
+    analysys.registers = table.length;
+    analysys.transitions = transitions;
+    return analysys;
+  }
+
+  private String findQuad(String x, String y, String oldQuad) {
+    if (x.equals("-01") || y.equals("-01")) {
+      return oldQuad;
+    }
+    String quadx = quadsX.get(x);
+    String quady = quadsY.get(y);
+    if (quadx != null && quady != null) {
+      String qd[] = quadx.split(",");
+      for (String q : qd) {
+        if (quady.contains(q)) {
+          return q;
+        }
+      }
+    }
+    return oldQuad;
   }
 }
