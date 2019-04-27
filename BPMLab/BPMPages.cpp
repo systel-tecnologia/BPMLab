@@ -29,7 +29,7 @@
 static const char* started_label = " Started";
 static const char* canceled_label = "Canceled";
 static const char* done_label = "  Done  ";
-static const char* wait_label = "Waiting Connection";
+static const char* wait_label = "Running Process...";
 static const char* conn_label = " BPMLab Connected ";
 static const char* pros_label = "Process Time Setup";
 static const char* unit_label = "( Minutes )";
@@ -193,14 +193,14 @@ void BPMMainPage::touch(int pixel_x, int pixel_y, TouchState state) {
 				navigateTo(&setupPage);
 			}
 		} /*else if (comm_btn.contains(pixel_x, pixel_y)) {
-			comm_btn.press(state == TS_PRESSED);
-			if (comm_btn.justPressed()) {
-				comm_btn.drawButton(true);
-			} else {
-				comm_btn.drawButton(false);
-				navigateTo(&commPage);
-			}
-		}*/
+		 comm_btn.press(state == TS_PRESSED);
+		 if (comm_btn.justPressed()) {
+		 comm_btn.drawButton(true);
+		 } else {
+		 comm_btn.drawButton(false);
+		 navigateTo(&commPage);
+		 }
+		 }*/
 	}
 }
 
@@ -322,7 +322,7 @@ void BPMSetupPage::show(void) {
 	save_btn.initButton(&tft, 65, 280, 100, 50, BLACK, BLUE, WHITE,
 			(char*) save_label, FONT_SIZE_20);
 	cancel_btn.initButton(&tft, 175, 280, 100, 50, BLACK, BLUE, WHITE,
-		(char*) cancel_label, FONT_SIZE_20);
+			(char*) cancel_label, FONT_SIZE_20);
 
 	prev_btn.drawButton(false);
 	next_btn.drawButton(false);
@@ -403,26 +403,32 @@ void BPMCommPage::show(void) {
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t\tShow BPM Connection Page...");
 #endif
+	drawIcon(60, 130, usb, 120, 90, GREEN);
+	tft.setTextColor(GREEN, BLACK);
+	tft.setTextSize(FONT_SIZE_20);
+	tft.print(conn_label, 15, 250);
 	bpmLab.listen();
 }
 
 void BPMCommPage::refresh(void) {
-	uint16_t color1 = BLACK;
-	uint16_t color2 = BLACK;
-	if (blink) {
-		color1 = YELLOW;
-		color2 = GREEN;
+	if (!bpmLab.isRunning() || (bpmLab.isRunning() && blink)) {
+		uint16_t color1 = BLACK;
+		uint16_t color2 = BLACK;
+		if (blink) {
+			color1 = YELLOW;
+			color2 = GREEN;
+		}
+		if (!bpmLab.isRunning()) {
+			drawIcon(60, 130, usb, 120, 90, color2);
+			tft.setTextColor(GREEN, BLACK);
+			tft.setTextSize(FONT_SIZE_20);
+			tft.print(conn_label, 15, 250);
+		} else {
+			drawIcon(60, 130, usb, 120, 90, color1);
+			tft.setTextColor(YELLOW, BLACK);
+			tft.setTextSize(FONT_SIZE_20);
+			tft.print(wait_label, 15, 250);
+		}
+		blink = !blink;
 	}
-	if (bpmLab.isConnected()) {
-		drawIcon(60, 130, usb, 120, 90, color2);
-		tft.setTextColor(GREEN, BLACK);
-		tft.setTextSize(FONT_SIZE_20);
-		tft.print(conn_label, 15, 250);
-	} else {
-		drawIcon(60, 130, usb, 120, 90, color1);
-		tft.setTextColor(YELLOW, BLACK);
-		tft.setTextSize(FONT_SIZE_20);
-		tft.print(wait_label, 15, 250);
-	}
-	blink = !blink;
 }

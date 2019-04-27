@@ -5,6 +5,7 @@
  Project: Systel BPM Lab Application Simple Connection
  Author: Daniel Valentin - dtvalentin@gmail.com
  */
+import java.time.format.DateTimeFormatter;
 
 class BPMRoute {
   BPMRoute(String quadA, String quadB) {
@@ -15,122 +16,153 @@ class BPMRoute {
   String to;
 }
 
-class BPMAnalysys {
-  int registers = 0;
-  int transitions = 0;
-  int holePokes = 0;
-  int rearings = 0;
-  String rows[] = {};
-  List<BPMRoute> routes = new ArrayList<BPMRoute>();
+public class BPMRegister {
+  String date ="";
+  String time ="";
+  Integer pos_x = -1;
+  Integer pos_y = -1;
+  Integer pos_z = -1;
+  Integer hp = -1;
+
+  BPMRegister() {
+    date ="";
+    time ="";
+    pos_x = 0;
+    pos_y = 0;
+    pos_z = 0;
+    hp = 0;
+  }
+
+  BPMRegister(String data) {
+    String[] parts = data.split(";");
+    if (parts.length == 6 && !parts[0].equals("DATE")) {
+      date = parts[0];
+      time = parts[1];
+      pos_x = parseInt(parts[2]);
+      pos_y = parseInt(parts[3]);
+      pos_z = parseInt(parts[4]);
+      hp = parseInt(parts[5].replace("\r\n", ""));
+    }
+  }
 }
 
-public class DataLocation {
-  private int x;
-  private int y;
-  private int z;
-  private int h;
-  private int w;
-  private int l;
-  private int hp;
+class BPMAnalysis { 
+  int registers = 0;
+  int moviments = 0;
+  int holePokes = 0;
+  int rearings = 0;
+  int timeCount = 0;
+  List<BPMRoute> route = new ArrayList<BPMRoute>();
+  List<BPMRegister> row = new ArrayList<BPMRegister>();
 }
 
 public class BPMDataFileReader {
-
-  private boolean fileOpen = false;
 
   public BPMDataFileReader() {
     super();
   }
 
-  public DataLocation processData(String data) {
-    return extractDataLocation(data);
+  public BPMRegister processData(String data) {
+    BPMRegister register = new BPMRegister(data);
+    return register;
   }
 
-  public void closeFile() {
-    fileOpen = false;
-  }
 
-  private DataLocation extractDataLocation(String data) {
-    DataLocation dataLocation = new DataLocation();
-    String[] parts = data.split(";");
-    if (parts.length == 9 && !parts[0].equals("DATE")) {
-      dataLocation.x = parseInt(parts[2]);
-      dataLocation.y = parseInt(parts[3]);
-      dataLocation.z = parseInt(parts[4]);
-      dataLocation.h = parseInt(parts[5]);
-      dataLocation.w = parseInt(parts[6]);
-      dataLocation.l = parseInt(parts[7]);
-      dataLocation.hp = parseInt(parts[8].replace("\r\n", ""));
-    }
-    return dataLocation;
-  }
-
-  public BPMAnalysys analyzeBPMFile(File file) {
+  public BPMAnalysis analyzeBPMFile(File file) {
     logger("Processing:: Analyzing "+ file.getName()  +" File...");
 
-    BPMAnalysys analysys = new BPMAnalysys();
+    BPMAnalysis analysis = new BPMAnalysis();
     int transitions = 0;
     int hps = 0;
-    int rgs = 0;
-    String quad = BPMArena.QUAD_A;
-    String hp = "00";
-    String rg = "-01";
+    int reags = 0;
+    String quad = BPMQuadrant.QUAD_A;
+    Integer hp = 0;
+    Integer rg = -1;
     String table[] = loadStrings(file.getAbsolutePath());
-
+    String initTime ="";
+    String endTime = "";
     int i = 0;
     for (String row : table) {
-      if (i > 0 ) {
-        String cols[] = row.split(";");
+      if (i == 0) {
+        if (!row.contains("DATE;TIME;X;Y;Z;HP")) {
+          break;
+        }
+      }
+      if (i > 0) {
+        BPMRegister register = new BPMRegister(row); 
+        analysis.row.add(register);
+
+        // Start Time Process
+        if (i == 1) {
+          initTime = register.date + " "+ register.time;
+        }
 
         // Analyzes Transitions
-        String newQuad = findQuad(cols[2], cols[3], quad);
+        String newQuad = findQuad(register.pos_x, register.pos_y, quad);
         if (!quad.equals(newQuad)) {
           BPMRoute route = new BPMRoute(quad, newQuad);
-          analysys.routes.add(route);
+          analysis.route.add(route);
           transitions++;
         }
         quad = newQuad;
 
         // Analyzys HP
-        String newHp = cols[8]; 
+        Integer newHp = register.hp; 
         if (!newHp.equals(hp)) {
-          if (!newHp.equals("00")) {
+          if (!newHp.equals(0)) {
             hps++;
           }
         }
         hp = newHp;
 
         // Analyzys Rearing
-        String newRg = cols[4];
-        if (!rg.equals("-01")) {
-          if (newRg.equals("-01")) {
-            rgs++;
+        Integer newRg = register.pos_z;
+        if (!rg.equals(-1)) {
+          if (newRg.equals(-1)) {
+            reags++;
           }
         }
         rg = newRg;
+        endTime = register.date + " "+ register.time;
       }
       i++;
     }
 
-    analysys.rows = table;
-    analysys.rearings = rgs;
-    analysys.holePokes = hps;
-    analysys.registers = table.length;
-    analysys.transitions = transitions;
+    analysis.timeCount = calculateTimeCount(initTime, endTime);
+    analysis.rearings = reags;
+    analysis.holePokes = hps;
+    analysis.registers = analysis.row.size();
+    analysis.moviments = transitions;
+    logger(analysis.moviments + " Transitions Found");
+    logger(analysis.holePokes + " HolePokes Found");
+    logger(analysis.rearings + " Rearings Found");
 
-    logger(analysys.transitions + " Transitions Found");
-    logger(analysys.holePokes + " HolePokes Found");
-    logger(analysys.rearings + " Rearings Found");
-
-    return analysys;
+    return analysis;
   }
 
-  private String findQuad(String x, String y, String oldQuad) {
-    if (x.equals("-01") || y.equals("-01")) {
+  private int calculateTimeCount(String initTime, String endTime) {
+    if (!endTime.isEmpty() && !initTime.isEmpty()) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+      LocalDateTime i = LocalDateTime.parse(initTime, formatter);
+      LocalDateTime e = LocalDateTime.parse(endTime, formatter);
+      Duration duration = Duration.between(i, e);
+      Long period = Math.abs(duration.toMinutes());
+      Long milis = Math.abs(duration.toMillis());
+      if (milis <= 60000) {
+        return 1;
+      }
+      return period.intValue();
+    }
+    return 0;
+  }
+
+
+  private String findQuad(int x, int y, String oldQuad) {
+    if (x == -1 || y == -1) {
       return oldQuad;
     }
-    String quadx = quadsX.get(x);
-    String quady = quadsY.get(y);
+    String quadx = bpmArena.quadsX.get(x);
+    String quady = bpmArena.quadsY.get(y);
     if (quadx != null && quady != null) {
       String qd[] = quadx.split(",");
       for (String q : qd) {

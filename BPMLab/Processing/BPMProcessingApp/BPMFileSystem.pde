@@ -22,28 +22,18 @@ class BPMFile {
 }
 
 public class BPMFileSystem {
-
   float fsSize = 980;
-
   float fsUsed = 8;
-
   int fsCountFiles = 0;
-
   int fsBmpFiles = 0;
-
   String volType = "";
-
   String fatType = "";
-
   boolean openned = false;
-
   ArrayList<BPMFile> remoteFiles = new ArrayList<BPMFile>();
-
   ArrayList<BPMFile> localFiles = new ArrayList<BPMFile>();
 
   public BPMFileSystem() {
   }
-
 
   public void openBPMFileSystem(ArrayList<String> dataFileSystem) {
     if (!dataFileSystem.isEmpty()) {

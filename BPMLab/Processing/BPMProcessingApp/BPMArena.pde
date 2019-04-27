@@ -6,10 +6,7 @@
  Author: Daniel Valentin - dtvalentin@gmail.com
  */
 
-HashMap<String, String> quadsX = new HashMap<String, String>();
-HashMap<String, String> quadsY = new HashMap<String, String>();
-
-public class BPMArena {
+public class BPMQuadrant {
 
   public static final String QUAD_A = "A";
   public static final String QUAD_B = "B";
@@ -21,7 +18,25 @@ public class BPMArena {
   public static final String QUAD_H = "H";
   public static final String QUAD_I = "I";
 
-  PApplet parent;
+  public int pos_x;
+  public int pos_y;
+  public String id;
+  public int index;
+
+  public BPMQuadrant(int index, String id, int x, int y) {
+    this.pos_x = x;
+    this.pos_y = y;
+    this.id = id;
+    this.index = index;
+  }
+}
+
+
+public class BPMArena {
+
+  public HashMap<Integer, String> quadsX = new HashMap<Integer, String>();
+  public HashMap<Integer, String> quadsY = new HashMap<Integer, String>();
+  public HashMap<String, BPMQuadrant> quadCoords = new HashMap<String, BPMQuadrant>();
 
   private PImage arena;
   private PImage mice;
@@ -31,96 +46,101 @@ public class BPMArena {
   private int z;
   private int offset_x = 310;
   private int offset_y = 60;
+  private int sensor_dx = 24;
+  private int sensor_dy = 22;
+  private int diameter = 50;
+  private float ex;
+  private float ey;
+  private float easing = 0.1;
 
+  private String pos = "";
+  private String hp = "";
 
-  private int sensor_dx = 25;
-  private int sensor_dy = 25;
-  private int sensor_y = 12;
-  private int sensor_x = 24;
-  private int diameter = 25;
+  public BPMArena() {
 
-  float ex;
-  float ey;
-  float easing = 0.1;
+    quadsX.put(0, "A,D,G");
+    quadsX.put(1, "A,D,G");
+    quadsX.put(2, "A,D,G");
+    quadsX.put(3, "A,D,G");
+    quadsX.put(4, "A,D,G");
+    quadsX.put(5, "A,D,G");
+    quadsX.put(6, "A,D,G");
+    
+    quadsX.put(7, "B,E,H");
+    quadsX.put(8, "B,E,H");
+    quadsX.put(9, "B,E,H");
+    quadsX.put(10, "B,E,H");
+    quadsX.put(11, "B,E,H");
+    quadsX.put(12, "B,E,H");
+    quadsX.put(13, "B,E,H");
+    quadsX.put(14, "B,E,H");
+    quadsX.put(15, "B,E,H");
+    quadsX.put(16, "B,E,H");
+    
+    quadsX.put(17, "C,F,I");
+    quadsX.put(18, "C,F,I");
+    quadsX.put(19, "C,F,I");
+    quadsX.put(20, "C,F,I");
+    quadsX.put(21, "C,F,I");
+    quadsX.put(22, "C,F,I");    
+    quadsX.put(23, "C,F,I");
 
-  String p = "";
-  String h = "";
+    quadsY.put(0, "A,B,C");
+    quadsY.put(1, "A,B,C");
+    quadsY.put(2, "A,B,C");
+    quadsY.put(3, "A,B,C");
 
+    quadsY.put(4, "D,E,F");
+    quadsY.put(5, "D,E,F");
+    quadsY.put(6, "D,E,F");    
+    quadsY.put(7, "D,E,F");
 
-  public BPMArena(PApplet parent) {
-    this.parent = parent;
+    quadsY.put(8, "G,H,I");
+    quadsY.put(9, "G,H,I");
+    quadsY.put(10, "G,H,I");
+    quadsY.put(11, "G,H,I");
 
-    quadsX.put("00", "A,D,G");
-    quadsX.put("01", "A,D,G");
-    quadsX.put("02", "A,D,G");
-    quadsX.put("03", "A,D,G");
-    quadsX.put("04", "A,D,G");
-    quadsX.put("05", "A,D,G");
-    quadsX.put("06", "A,D,G");
-    quadsX.put("07", "A,D,G");
+    quadCoords.put(BPMQuadrant.QUAD_G, new BPMQuadrant(7, BPMQuadrant.QUAD_G, 0, 0));
+    quadCoords.put(BPMQuadrant.QUAD_H, new BPMQuadrant(8, BPMQuadrant.QUAD_H, 1, 0));
+    quadCoords.put(BPMQuadrant.QUAD_I, new BPMQuadrant(9, BPMQuadrant.QUAD_I, 2, 0));
+    quadCoords.put(BPMQuadrant.QUAD_D, new BPMQuadrant(4, BPMQuadrant.QUAD_D, 0, 1));
+    quadCoords.put(BPMQuadrant.QUAD_E, new BPMQuadrant(5, BPMQuadrant.QUAD_E, 1, 1));
+    quadCoords.put(BPMQuadrant.QUAD_F, new BPMQuadrant(6, BPMQuadrant.QUAD_F, 2, 1));
+    quadCoords.put(BPMQuadrant.QUAD_A, new BPMQuadrant(1, BPMQuadrant.QUAD_A, 0, 2));
+    quadCoords.put(BPMQuadrant.QUAD_B, new BPMQuadrant(2, BPMQuadrant.QUAD_B, 1, 2));
+    quadCoords.put(BPMQuadrant.QUAD_C, new BPMQuadrant(3, BPMQuadrant.QUAD_C, 2, 2));
 
-    quadsX.put("08", "B,E,H");
-    quadsX.put("09", "B,E,H");
-    quadsX.put("10", "B,E,H");
-    quadsX.put("11", "B,E,H");
-    quadsX.put("12", "B,E,H");
-    quadsX.put("13", "B,E,H");
-    quadsX.put("14", "B,E,H");
-    quadsX.put("15", "B,E,H");
-
-    quadsX.put("16", "C,F,I");
-    quadsX.put("17", "C,F,I");
-    quadsX.put("18", "C,F,I");
-    quadsX.put("19", "C,F,I");
-    quadsX.put("20", "C,F,I");
-    quadsX.put("21", "C,F,I");
-    quadsX.put("22", "C,F,I");    
-    quadsX.put("23", "C,F,I");
-
-    quadsY.put("00", "A,B,C");
-    quadsY.put("01", "A,B,C");
-    quadsY.put("02", "A,B,C");
-    quadsY.put("03", "A,B,C");
-
-    quadsY.put("04", "D,E,F");
-    quadsY.put("05", "D,E,F");
-    quadsY.put("06", "D,E,F");    
-    quadsY.put("07", "D,E,F");
-
-    quadsY.put("08", "G,H,I");
-    quadsY.put("09", "G,H,I");
-    quadsY.put("10", "G,H,I");
-    quadsY.put("11", "G,H,I");
-
-    arena = parent.loadImage("arena.png");
-    mice = parent.loadImage("mice.png");
-    x = 0;
-    y = 0;
+    arena = loadImage("arena.png");
+    mice = loadImage("mice.png");
+    reset();
   }
 
-  public void holePoke(int hp) {
-    h = "HP: " + hp;
+  public void reset() {
+    BPMRegister reset = new BPMRegister();
+    setPosition(reset);
   }
 
-  public void position(int pos_x, int pos_y, int pos_z, int size_w, int size_h, int size_l, int hp) {
-    z = pos_z;
-    if (pos_x < 0) {
-      x = 0;
-    } else if (pos_x > (sensor_x - 1)) 
-      x = ((sensor_x - 1) * sensor_dx);
-    else x = (pos_x * sensor_dx);
-    if (pos_y < 0) {
-      y = 0;
-    } else if (pos_y > (sensor_y - 1))
-      y = ((sensor_y - 1) * sensor_dy);
-    else y = (pos_y * sensor_dy);
+  public void setPosition(BPMRegister register) {
+    if (register.pos_x >= 0 &&  register.pos_y >= 0) {
 
-    p = "POS: (" + pos_x + ", " + pos_y + ", " + pos_z + ")";
-    h = "HP: (" + hp + ")";
+      // Z Position
+      z = register.pos_z;
+
+      // X Position
+      x = (register.pos_x * sensor_dx);
+
+      // Y Position
+      y = (register.pos_y * sensor_dy);
+
+      pos = "POS: ( " + register.pos_x + ", " + register.pos_y + ", " + register.pos_z + " )";
+      hp = "HP: ( " + register.hp + " )";
+    }
   }
 
   public void update() {
-    parent.image(arena, 300, 50, 620, 310);
+
+    // Position Calc
+    image(arena, 300, 50, 620, 310);
     float targetX = x;
     float dx = targetX - ex;
     ex += dx * easing;
@@ -128,25 +148,23 @@ public class BPMArena {
     float dy = targetY - ey;
     ey += dy * easing;
 
+    // Quadrants
     textFont(font3, 35);
-    text(QUAD_A, 400, 120);
-    text(QUAD_B, 600, 120);
-    text(QUAD_C, 800, 120);
+    text("1", 400, 120);
+    text("2", 600, 120);
+    text("3", 800, 120);
+    text("4", 400, 220);
+    text("5", 600, 220);
+    text("6", 800, 220);
+    text("7", 400, 320);
+    text("8", 600, 320);
+    text("9", 800, 320);
 
-    text(QUAD_D, 400, 220);
-    text(QUAD_E, 600, 220);
-    text(QUAD_F, 800, 220);
-
-
-    text(QUAD_G, 400, 320);
-    text(QUAD_H, 600, 320);
-    text(QUAD_I, 800, 320);
-
+    // Arena Draw
     textFont(font1, 20);
-    text(p, 300, 390);
-    text(h, 300, 420);
-
+    text(pos, 300, 390);
+    text(hp, 300, 420);
     fill(0, 0, 255);
-    parent.image(mice, (ex + offset_x), (ey + offset_y), diameter*2, diameter*2);
+    image(mice, (ex + offset_x), (ey + offset_y), diameter, diameter);
   }
 }

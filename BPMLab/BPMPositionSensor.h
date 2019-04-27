@@ -70,9 +70,6 @@ struct PositionData {
 		int x = -1;
 		int y = -1;
 		int z = -1;
-		int heigth = 0;
-		int width = 0;
-		int length = 0;
 		SensorData data;
 };
 
@@ -104,8 +101,6 @@ class BPMPositionSensor {
 		InfraredOctLM339 rx;
 
 		InfraredMTX595D tx;
-
-		PositionData positionDataStored;
 
 };
 

@@ -75,8 +75,7 @@ void BPMDataLogger::write(RecordData data) {
 	write((char*) RECORD_FORMAT, data.dateTime.day(), data.dateTime.month(),
 			data.dateTime.year(), data.dateTime.hour(), data.dateTime.minute(),
 			data.dateTime.second(), data.position.x, data.position.y,
-			data.position.z, data.position.heigth, data.position.width,
-			data.position.length, data.holePoke);
+			data.position.z, data.holePoke);
 }
 
 void BPMDataLogger::openFile(int id, DateTime dateTime) {

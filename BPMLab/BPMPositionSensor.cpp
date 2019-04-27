@@ -45,19 +45,22 @@ SensorData BPMPositionSensor::readData(void) {
 			delay(1);
 			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
 				tx.write(colIndex, rowIndex, HIGH);
-				int value = rx.read(rowIndex);
+				int value1 = rx.read(rowIndex);
+				int value2 = rx.read(rowIndex);
+				int value3 = rx.read(rowIndex);
 
 				if ((colIndex == 5 && rowIndex == 6)
 						|| (colIndex == 0 && rowIndex == 0)
 						|| (colIndex == 0 && rowIndex == 2)
+						|| (colIndex == 0 && rowIndex == 3)
 						|| (colIndex == 1 && rowIndex == 2)
 						|| (colIndex == 3 && rowIndex == 0)
 						|| (colIndex == 5 && rowIndex == 0)
 						|| (colIndex == 5 && rowIndex == 7)) {
-					value = 0;
+					value1 = 0;
 				}
 
-				ret.value[colIndex][rowIndex] = value;
+				ret.value[colIndex][rowIndex] = (value1 & value2 & value3);
 #if(DEBUG_LEVEL >= 4)
 				DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
 				DBG_PRINT_LEVEL(colIndex);
@@ -70,7 +73,7 @@ SensorData BPMPositionSensor::readData(void) {
 			}
 		}
 	}
-	delay(10);
+	delay(1);
 	clear();
 	return ret;
 }
@@ -106,16 +109,13 @@ PositionData BPMPositionSensor::read(void) {
 	}
 
 	positionData.data = data;
-	positionData.width = width;
-	positionData.heigth = heigth;
-	positionData.length = length;
 	positionData.x = x;
 	positionData.y = y;
 	positionData.z = z;
 	if (x == -1 || y == -1) {
-		positionData = positionDataStored;
+		positionData.x = -1;
+		positionData.y = -1;
 	}
-	positionDataStored = positionData;
 	return positionData;
 }
 

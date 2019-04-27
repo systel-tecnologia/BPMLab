@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.time.*;
 import java.time.temporal.*;
+import grafica.*;
 
 // Static Definition
 public static final int BPM_ALPHA = 30;
@@ -27,7 +28,6 @@ public static final int MAIN_FORM = 2;
 public static final int START_FORM = 3;
 public static final int DONE_FORM = 4;
 public static final int CANCEL_FORM = 5;
-
 
 // Processors
 private BPMConnection bpmConnection;
@@ -45,15 +45,15 @@ GLabel lblFileName, lblFileDate, lblFileSize, lblClock;
 GLabel lblLog, lblfs, lblBaud, lblCommBps, lblFile, lblttFileName, lblttFileDate, lblttFileSize; 
 GLabel lblConsole, lblArenaControls, lblConnectionControls;
 GLabel lblttDiskType, lblttDiskSys, lblttDiskSize, lblttDiskUse, lblttFiles, lblttbpmFiles;
-GLabel lblTimer, lblPecentual, lblState;
+GLabel lblTimer, lblPecentual, lblState, lblFilesAnalyze;
 GLabel lblDiskType, lblDiskSys, lblDiskSize, lblDiskUse, lblFiles, lblbpmFiles;
-GButton btnCommPort, btnDownload, btnDelete, btnAnalise; 
-GDropList drpCommPort, drpFilesAnalyzys;  
+GButton btnCommPort, btnDownload, btnDelete, btnAnalyze1; 
+GDropList drpCommPort;  
 GSlider sdrBps; 
 GTextArea txaBPMLog; 
 PImage rtcError, sdCardError;
 PImage mainForm, cancelForm, startForm, doneForm;
-GButton btnStart, btnSetup, btnCancel, btnDone, btnConnect;
+GButton btnStart, btnSetup, btnCancel, btnDone, btnConnect, btnAnalyze2;
 
 // Controls Analyzes
 GLabel lblFile2, lblStat;
@@ -61,6 +61,9 @@ GLabel lblttFileName2, lblttFileRepo, lblttFileDate2, lblttFileSize2;
 GLabel lblFileRepo, lblFileDate2, lblFileSize2;
 GLabel lblttMoviments, lblttHolePokes, lblttRearings;
 GLabel lblMoviments, lblHolePokes, lblRearings;
+GLabel lblttRecords, lblttTmCount, lblRecords, lblTmCount;
+GPlot plotBars, plotQuads, plotRoutes, plotRearing, plotHp;
+
 
 // Vars
 int baud = 0;
@@ -72,23 +75,20 @@ PImage forms[] = {};
 String params[];
 LocalDateTime startTime;
 BPMConfig config;
-BPMAnalysys analysys;
+BPMAnalysis analysis;
 BPMFile selectedFile;
 SimpleDateFormat fmdt = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
 SimpleDateFormat fmtm = new SimpleDateFormat("00:mm:ss");
 SimpleDateFormat fmdtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 List<BPMFile> localFiles = new ArrayList<BPMFile>();
+GPointsArray points1, points2, points3, points4, points5;
 
 class BPMConfig {
 
   long baudrate;
-
   int fileIndex;
-
   int cronMode;
-
   long secs;
-
   int modify;
 
   BPMConfig() {
@@ -114,7 +114,7 @@ void setup() {
   params = loadStrings("params.txt");
 
   // Processosrs
-  bpmArena = new BPMArena(this);
+  bpmArena = new BPMArena();
   bpmConnection = new BPMConnection();
   bpmDataFileReader = new BPMDataFileReader();
   bpmFileSystem = new BPMFileSystem();
@@ -129,7 +129,8 @@ void setup() {
   grpMain = new GGroup(this);  
   createControls();
   createGUI();
-  createControlsAnalyzes();
+  createControlsAnalysis();
+  createGraphicsAnalysis();
 
   viewConnection.setAlpha(BPM_ALPHA, true);
   viewArena.setAlpha(BPM_ALPHA, true);
@@ -149,7 +150,10 @@ void setup() {
   // Analyze Window
   viewFileAnalyze.setAlpha(BPM_ALPHA, true);
   viewFileEstat.setAlpha(BPM_ALPHA, true);
-  view3.setAlpha(BPM_ALPHA, true);
+  viewQuadant.setAlpha(BPM_ALPHA, true);
+  viewPath.setAlpha(BPM_ALPHA, true);
+  viewHP.setAlpha(BPM_ALPHA, true);
+  viewRg.setAlpha(BPM_ALPHA, true);
 
   // Clear all data
   reset();
@@ -184,7 +188,8 @@ void reset() {
   lblPecentual.setText("0%");
 
   btnDelete.setEnabled(false);
-  btnAnalise.setEnabled(true);
+  btnAnalyze1.setEnabled(true);
+  btnAnalyze2.setEnabled(true);
   btnDownload.setEnabled(false);
   btnConnect.setEnabled(false);
 
@@ -199,7 +204,7 @@ void reset() {
   lblState.setVisible(false);
 
   // Processsors
-  bpmArena.position(0, 0, 0, 0, 0, 0, 0);
+  bpmArena.reset();
   bpmConnection.closeConnection();
 
   // Analyze Window
@@ -245,11 +250,8 @@ void draw() {
 
   // Move Arena
   if (bpmConnection.isProcessStarted()) {
-    DataLocation data = bpmDataFileReader.processData(bpmConnection.getData());
-    if (data.x > 0 &&  data.y > 0) {
-      bpmArena.holePoke(data.hp);
-      bpmArena.position(data.x, data.y, data.z, data.w, data.h, data.l, data.hp);
-    }
+    BPMRegister  data = bpmDataFileReader.processData(bpmConnection.getData());
+    bpmArena.setPosition(data);
   }
   bpmArena.update();
 }
@@ -266,7 +268,7 @@ void serialEvent(Serial device) {
 }
 
 public void logger(String log) {
-  txaBPMLog.appendText(log);
+  //txaBPMLog.appendText(log);
 }
 public void loadAllInitialData() {
   openFileSystem();
@@ -373,7 +375,8 @@ public void btnStartClick(GButton source, GEvent event) {
 
 public void startProcess(ArrayList<String> list) {
   btnDelete.setEnabled(false);
-  btnAnalise.setEnabled(false);
+  btnAnalyze1.setEnabled(false);
+  btnAnalyze2.setEnabled(false);
   btnDownload.setEnabled(false);
   String data = list.get(0);
   config = new BPMConfig(data);
@@ -401,9 +404,10 @@ public void btnCancelClick(GButton button, GEvent event) {
 public void btnDoneClick(GButton button, GEvent event) {
   loadFileList();
   btnDelete.setEnabled(true);
-  btnAnalise.setEnabled(true);
+  btnAnalyze1.setEnabled(true);
+  btnAnalyze2.setEnabled(true);
   btnDownload.setEnabled(true);
-  bpmArena.position(0, 0, 0, 0, 0, 0, 0);
+  bpmArena.reset();
   formIndex = MAIN_FORM;
 }
 
@@ -474,7 +478,7 @@ public void btnDownloadClick(GButton source, GEvent event) {
   }
 }
 
-public void btnAnalyzeClick(GButton button, GEvent event) { 
+public void btnAnalyze1Click(GButton button, GEvent event) { 
   if (selectedFile != null) {
     String repo = getParamValue("REPO");
     if (repo.isEmpty()) {
@@ -484,22 +488,62 @@ public void btnAnalyzeClick(GButton button, GEvent event) {
     if (repo != null && !repo.isEmpty()) {
       File file = new File(repo, selectedFile.name);
       if (file.exists()) {
-        cursor(WAIT);
-        analysys = bpmDataFileReader.analyzeBPMFile(file);
-        cursor(ARROW);
-        analyseWindow.setVisible(true);
+        executeAnalysis(file);
       } else {
         G4P.showMessage(this, "Local File " + selectedFile.name + " not found. Try download before.", "Error", G4P.ERROR);
       }
     }
   } else {
-    analyseWindow.setVisible(true);
+    if (!analyzeWindow.isVisible()) {
+      analyzeWindow.setVisible(true);
+    }
+  }
+}
+
+public void handleButtonEvents(GButton button, GEvent event) { /* code */
+}
+
+
+public void btnAnalyze2Click(GButton button, GEvent event) {
+  String fname = G4P.selectInput("Open BPM File", "*", "BPM Files");
+  if (!fname.isEmpty()) {
+    File file = new File(fname);
+    if (file.exists()) {
+      executeAnalysis(file);
+    } else {
+      G4P.showMessage(this, "Not file found!", "Error", G4P.ERROR);
+    }
   }
 }
 
 public void btnSetupClick(GButton button, GEvent event) { /* code */
 }
 
+public void executeAnalysis(File file) {
+  cursor(WAIT);
+  if (selectedFile == null) {
+    bpmFileSystem.loadLocalFiles();
+    ArrayList<BPMFile> files = bpmFileSystem.getLocalFiles();
+    for (BPMFile bf : files) {
+      if (bf.name.equals(file.getName())) {
+        selectedFile = bf;
+        break;
+      }
+    }
+  }
+  analysis = bpmDataFileReader.analyzeBPMFile(file);
+  updateAnalysys(analysis);
+  if (selectedFile != null) {
+    lblFilesAnalyze.setText(selectedFile.name);
+    lblFileDate2.setText(selectedFile.date);
+    lblFileSize2.setText(selectedFile.size + "KB");
+  }
+  cursor(ARROW);
+  if (!analyzeWindow.isVisible()) {
+    analyzeWindow.setVisible(true);
+  }
+  selectedFile = null;
+}
 
 // Update delay value
 public void sdrBpsChange(GSlider source, GEvent event) {
@@ -512,27 +556,6 @@ public void drpCommPortSelect(GDropList source, GEvent event) {
   portName = source.getSelectedText();
 }
 
-public void drpFilesAnalyzeSelect(GDropList source, GEvent event) {
-  String name = source.getSelectedText();
-  if (name != null) {
-    for (BPMFile bf : localFiles) {
-      if (bf.name.equals(name)) {
-        String repo = getParamValue("REPO");
-        File file = new File(repo, name);
-        if (file.exists()) {
-          cursor(WAIT);
-          analysys = bpmDataFileReader.analyzeBPMFile(file);
-          updateAnalysys(analysys);
-          cursor(ARROW);
-          analyseWindow.setVisible(true);
-        } else {
-          G4P.showMessage(this, "Local File " + name + " not found. Try download before.", "Error", G4P.ERROR);
-        }
-      }
-    }
-  }
-}
-
 void controlEvent(ControlEvent event) {
   if (event.getName().equals("myList")) {
     Float index = event.getValue();
@@ -541,9 +564,9 @@ void controlEvent(ControlEvent event) {
     lblFileName.setText(file.name);
     lblFileDate.setText(file.date);
     lblFileSize.setText(file.size + "KB");
-
     btnDelete.setEnabled(true);
-    btnAnalise.setEnabled(true);
+    btnAnalyze1.setEnabled(true);
+    btnAnalyze2.setEnabled(true);
     btnDownload.setEnabled(true);
     selectedFile = file;
   }
@@ -787,10 +810,10 @@ public void createControls() {
   btnDelete.setLocalColorScheme(GCScheme.BLUE_SCHEME);
   btnDelete.addEventHandler(this, "btnDeleteClick");
 
-  btnAnalise = new GButton(this, 1175, 650, 85, 30);
-  btnAnalise.setText("Analyze");
-  btnAnalise.setLocalColorScheme(GCScheme.BLUE_SCHEME);
-  btnAnalise.addEventHandler(this, "btnAnalyzeClick");
+  btnAnalyze1 = new GButton(this, 1175, 650, 85, 30);
+  btnAnalyze1.setText("Analyze");
+  btnAnalyze1.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+  btnAnalyze1.addEventHandler(this, "btnAnalyze1Click");
 
   lblClock = new GLabel(this, 50, 265, 172, 30);
   lblClock.setText("");
@@ -837,104 +860,247 @@ public void createControls() {
   lblState.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
 }
 
-public void createControlsAnalyzes() {
-  //analyseWindow.setVisible(false);
+public void createControlsAnalysis() {
 
   //File Group
-  lblFile2 = new GLabel(analyseWindow, 22, 15, 190, 20);
+  lblFile2 = new GLabel(analyzeWindow, 22, 15, 190, 20);
   lblFile2.setText("Selected File");
   lblFile2.setTextBold();
   lblFile2.setLocalColorScheme(GCScheme.GREEN_SCHEME);
 
-  lblttFileName2 = new GLabel(analyseWindow, 30, 35, 190, 20);
+  lblttFileName2 = new GLabel(analyzeWindow, 30, 35, 190, 20);
   lblttFileName2.setText("Repo:");
   lblttFileName2.setTextBold();
   lblttFileName2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttFileName2 = new GLabel(analyseWindow, 30, 55, 190, 20);
+  lblttFileName2 = new GLabel(analyzeWindow, 30, 55, 190, 20);
   lblttFileName2.setText("File:");
   lblttFileName2.setTextBold();
   lblttFileName2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttFileDate2 = new GLabel(analyseWindow, 30, 80, 190, 20);
+  lblttFileDate2 = new GLabel(analyzeWindow, 30, 75, 190, 20);
   lblttFileDate2.setText("Date:");
   lblttFileDate2.setTextBold();
   lblttFileDate2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttFileSize2 = new GLabel(analyseWindow, 30, 100, 190, 20);
+  lblttFileSize2 = new GLabel(analyzeWindow, 30, 95, 190, 20);
   lblttFileSize2.setText("Size:");
   lblttFileSize2.setTextBold();
   lblttFileSize2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblFileRepo = new GLabel(analyseWindow, 70, 35, 190, 20);
+  lblFileRepo = new GLabel(analyzeWindow, 70, 35, 190, 20);
   lblFileRepo.setText("");
   lblFileRepo.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblFileDate2 = new GLabel(analyseWindow, 70, 80, 190, 20);
+  lblFilesAnalyze = new GLabel(analyzeWindow, 70, 55, 200, 20);
+  lblFilesAnalyze.setText("");
+  lblFilesAnalyze.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblFileDate2 = new GLabel(analyzeWindow, 70, 75, 190, 20);
   lblFileDate2.setText("");
   lblFileDate2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblFileSize2 = new GLabel(analyseWindow, 70, 100, 190, 20);
+  lblFileSize2 = new GLabel(analyzeWindow, 70, 95, 190, 20);
   lblFileSize2.setText("");
   lblFileSize2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  drpFilesAnalyzys = new GDropList(analyseWindow, 70, 55, 200, 90, 0, 20);
-  drpFilesAnalyzys.setItems(new String[]{"Files Not Found"}, 0);
-  drpFilesAnalyzys.setLocalColorScheme(GCScheme.GREEN_SCHEME);
-  drpFilesAnalyzys.addEventHandler(this, "drpFilesAnalyzeSelect");
+  btnAnalyze2 = new GButton(analyzeWindow, 180, 95, 85, 30);
+  btnAnalyze2.setText("Analyze");
+  btnAnalyze2.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+  btnAnalyze2.addEventHandler(this, "btnAnalyze2Click");
 
   //Stat Group
-  lblStat = new GLabel(analyseWindow, 22, 150, 190, 20);
+  lblStat = new GLabel(analyzeWindow, 22, 150, 190, 20);
   lblStat.setText("Statistics");
   lblStat.setTextBold();
   lblStat.setLocalColorScheme(GCScheme.GREEN_SCHEME);
 
-  lblttMoviments = new GLabel(analyseWindow, 30, 100, 190, 20);
+  lblttRecords = new GLabel(analyzeWindow, 30, 170, 190, 20);
+  lblttRecords.setText("Records:");
+  lblttRecords.setTextBold();
+  lblttRecords.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttTmCount = new GLabel(analyzeWindow, 30, 190, 190, 20);
+  lblttTmCount.setText("Time Count:");
+  lblttTmCount.setTextBold();
+  lblttTmCount.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttMoviments = new GLabel(analyzeWindow, 30, 210, 190, 20);
   lblttMoviments.setText("Moviment:");
+  lblttMoviments.setTextBold();
   lblttMoviments.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttHolePokes = new GLabel(analyseWindow, 30, 100, 190, 20);
+  lblttHolePokes = new GLabel(analyzeWindow, 30, 230, 190, 20);
   lblttHolePokes.setText("Hole Poke:");
+  lblttHolePokes.setTextBold();
   lblttHolePokes.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttRearings = new GLabel(analyseWindow, 30, 100, 190, 20);
+  lblttRearings = new GLabel(analyzeWindow, 30, 250, 190, 20);
   lblttRearings.setText("Rearing:");
+  lblttRearings.setTextBold();
   lblttRearings.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblMoviments = new GLabel(analyseWindow, 30, 100, 190, 20);
-  lblMoviments.setText("");
+  lblRecords = new GLabel(analyzeWindow, 95, 170, 190, 20);
+  lblRecords.setText("0");
+  lblRecords.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblTmCount = new GLabel(analyzeWindow, 105, 190, 190, 20);
+  lblTmCount.setText("0");
+  lblTmCount.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblMoviments = new GLabel(analyzeWindow, 95, 210, 190, 20);
+  lblMoviments.setText("0");
   lblMoviments.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblHolePokes = new GLabel(analyseWindow, 30, 100, 190, 20);
-  lblHolePokes.setText("");
+  lblHolePokes = new GLabel(analyzeWindow, 95, 230, 190, 20);
+  lblHolePokes.setText("0");
   lblHolePokes.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblRearings = new GLabel(analyseWindow, 30, 100, 190, 20);
-  lblRearings.setText("");
+  lblRearings = new GLabel(analyzeWindow, 90, 250, 190, 20);
+  lblRearings.setText("0");
   lblRearings.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 }
 
-private void  resetAnalyzeWindow() {
-  lblFileRepo.setText(getParamValue("REPO"));
-  lblFileDate2.setText("");
-  lblFileSize2.setText("");
-  bpmFileSystem.loadLocalFiles();
-  ArrayList<String> names = new ArrayList<String>(); 
-  localFiles = bpmFileSystem.getLocalFiles();
-  for (BPMFile file : localFiles) {
-    names.add(file.name);
-  }
-  if (names.isEmpty()) {
-    drpFilesAnalyzys.setItems(new String[]{"Files Not Found"}, 0);
-  } else {
-    drpFilesAnalyzys.setItems(names, 0);
-    BPMFile file = localFiles.get(0);
-    lblFileDate2.setText(file.date);
-    lblFileSize2.setText(file.size + "KB");
-  }
+
+public void createGraphicsAnalysis() {
+  // Plot Statistics 
+  points1 = new GPointsArray(3);
+  points1.add(0, 0, "Moviments");
+  points1.add(1, 0, "Hole Poke");
+  points1.add(2, 0, "Rearing");
+  plotBars = new GPlot(analyzeWindow);
+  plotBars.setPos(25, 280);
+  plotBars.setDim(150, 240);
+  plotBars.setYLim(0, 1);
+  plotBars.setXLim(-1, 3);
+  plotBars.getTitle().setText("Statistic ( Time 0 min )");
+  plotBars.getTitle().setTextAlignment(LEFT);
+  plotBars.getTitle().setRelativePos(0.2);
+  plotBars.getYAxis().getAxisLabel().setText("Records");
+  plotBars.setPoints(points1);
+  plotBars.startHistograms(GPlot.VERTICAL);
+  plotBars.getHistogram().setDrawLabels(true);
+  plotBars.getHistogram().setRotateLabels(true);
+
+  // Plot Zone
+  plotQuads = new GPlot(analyzeWindow);
+  plotQuads.setPos(310, 20);
+  plotQuads.setDim(255, 180);
+  plotQuads.setYLim(0.5, 9.5);
+  plotQuads.setVerticalAxesTicksSeparation(1);
+  plotQuads.setFixedXLim(true);
+  plotQuads.setFixedYLim(true);
+  plotQuads.getTitle().setText("Moviment");
+  plotQuads.getYAxis().getAxisLabel().setText("Quadrant");
+  plotQuads.getXAxis().getAxisLabel().setText("Routes");
+  plotQuads.startHistograms(GPlot.HORIZONTAL);
+  plotQuads.getHistogram().setDrawLabels(true);
+  plotQuads.getHistogram().setRotateLabels(true);
+
+
+  // Hole Poke
+  plotHp = new GPlot(analyzeWindow);
+  plotHp.setPos(310, 335);
+  plotHp.setDim(255, 180);
+  plotHp.setYLim(0.5, 11.5);
+  plotHp.setVerticalAxesTicksSeparation(1);
+  plotHp.setFixedXLim(true);
+  plotHp.setFixedYLim(true);
+  plotHp.getTitle().setText("Hole Poke");
+  plotHp.getXAxis().getAxisLabel().setText("Records");
+  plotHp.getYAxis().getAxisLabel().setText("HP Sensor");
+
+  // Rearing
+  plotRearing = new GPlot(analyzeWindow);
+  plotRearing.setPos(702, 20);
+  plotRearing.setDim(255, 180);
+  plotRearing.setYLim(-0.5, 16.5);
+  plotRearing.setFixedXLim(true);
+  plotRearing.setFixedYLim(true);
+  plotRearing.getTitle().setText("Rearing");
+  plotRearing.getXAxis().getAxisLabel().setText("Records");
+  plotRearing.getYAxis().getAxisLabel().setText("Z Sensor");
+
+
+  // Plot Routes
+  plotRoutes = new GPlot(analyzeWindow);
+  plotRoutes.setPos(702, 335);
+  plotRoutes.setDim(255, 180);
+  plotRoutes.setYLim(-0.5, 12.5);
+  plotRoutes.setXLim(-0.5, 23.5);
+  plotRoutes.setVerticalAxesTicksSeparation(2);
+  plotRoutes.setHorizontalAxesTicksSeparation(2);
+  plotRoutes.setFixedXLim(true);
+  plotRoutes.setFixedYLim(true);
+  plotRoutes.getTitle().setText("Path");
+  plotRoutes.getXAxis().getAxisLabel().setText("X Sensor");
+  plotRoutes.getYAxis().getAxisLabel().setText("Y Sensor");
 }
 
-public void updateAnalysys(BPMAnalysys analysys) {
+public void resetAnalyzeWindow() {
+  lblFileRepo.setText(getParamValue("REPO"));
+  lblRecords.setText("0 ( rows )");
+  lblTmCount.setText("0 ( minutes )");
+  lblMoviments.setText("0 ( routes )");
+  lblHolePokes.setText("0 ( inputs )");
+  lblRearings.setText("0 ( ups )");
+  lblFilesAnalyze.setText("");
+  lblFileDate2.setText("");
+  lblFileSize2.setText(0 + "KB");
+}
+
+public void updateAnalysys(BPMAnalysis analysis) {
+  lblRecords.setText(analysis.registers + " ( rows )");
+  lblTmCount.setText(analysis.timeCount + " ( minutes )");
+  lblMoviments.setText(analysis.moviments + " ( routes )");
+  lblHolePokes.setText(analysis.holePokes + " ( inputs )");
+  lblRearings.setText(analysis.rearings + " ( ups )");
+
+  // Data Stat
+  points1 = new GPointsArray(3);
+  points1.add(0, analysis.moviments, "Moves");
+  points1.add(1, analysis.holePokes, "Hole Poke");
+  points1.add(2, analysis.rearings, "Rearing");
+  plotBars.getTitle().setText("Statistic ( "+ analysis.timeCount +"  min )");
+  plotBars.setYLim(0, analysis.registers);
+  plotBars.setPoints(points1);
+
+  // Data Zone
+  points2 = new GPointsArray(analysis.route.size());
+  int j = 0;
+  for (BPMRoute route : analysis.route) {
+    BPMQuadrant q1 = bpmArena.quadCoords.get(route.to);
+    GPoint p1 = new GPoint(j, q1.index);
+    points2.add(p1);
+    j++;
+  }
+
+  plotQuads.setXLim(0, analysis.route.size()+1);
+  plotQuads.setPoints(points2);
+
+  // Data Path, hp, rearing
+  points3 = new GPointsArray(analysis.registers);
+  points4 = new GPointsArray(analysis.registers);
+  points5 = new GPointsArray(analysis.registers);
+  int i = 0;
+  for (BPMRegister row : analysis.row) {
+    if (row.pos_x > -1 && row.pos_y > -1) {
+      GPoint p1 = new GPoint(row.pos_x, row.pos_y);
+      points3.add(p1);
+    }
+    
+    GPoint p2 = new GPoint(i, row.hp);
+    points4.add(p2);
+
+    GPoint p3 = new GPoint(i, row.pos_z);
+    points5.add(p3);
+    i++;
+  }
+  plotHp.setXLim(0, analysis.registers);
+  plotRearing.setXLim(0, analysis.registers);
+  plotRoutes.setPoints(points3);
+  plotHp.setPoints(points4);
+  plotRearing.setPoints(points5);
 }
 
 public void handleDropListEvents(GDropList list, GEvent event) { /* code */

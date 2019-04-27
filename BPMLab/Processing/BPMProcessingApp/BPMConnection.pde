@@ -12,17 +12,11 @@ import processing.serial.*;
 public class BPMConnection {
 
   public static final String CMD_OPEN_FILESYSTEM = "SDCARDINFO";
-
   public static final String CMD_DISCONNECT = "DISCONNECT";
-
   public static final String CMD_LIST_FILES = "LISTFILES";
-
   public static final String CMD_DELETEFILE = "DELETEFILE";
-
   public static final String CMD_DOWNLOAD_FILE = "DOWNLOAD";
-
   public static final String  CMD_PROCESS_START = "PROCESSINIT";
-
   public static final String  CMD_PROCESS_CANCEL = "PROCESSCANCEL";
 
   Serial device;  // Create object from Serial class

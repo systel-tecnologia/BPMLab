@@ -22,8 +22,8 @@
 #define DTLOG_D1_PIN  12
 #define DTLOG_CK_PIN  13
 
-static const char* HEADER_FORMAT = "DATE;TIME;X;Y;Z;H;W;L;HP";
-static const char* RECORD_FORMAT = "%.2d-%.2d-%.4d;%.2d:%.2d:%.2d;%.2d;%.2d;%.2d;%.2d;%.2d;%.2d;%.2d";
+static const char* HEADER_FORMAT = "DATE;TIME;X;Y;Z;HP";
+static const char* RECORD_FORMAT = "%.2d-%.2d-%.4d;%.2d:%.2d:%.2d;%.2d;%.2d;%.2d;%.2d";
 static const char* FILE_NAME_FORMAT = "BPMDF%.3d.CSV";
 
 struct RecordData {
