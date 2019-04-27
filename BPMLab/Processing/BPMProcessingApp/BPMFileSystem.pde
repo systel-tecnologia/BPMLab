@@ -23,8 +23,6 @@ class BPMFile {
 
 public class BPMFileSystem {
 
-  PApplet parent;
-
   float fsSize = 980;
 
   float fsUsed = 8;
@@ -39,11 +37,11 @@ public class BPMFileSystem {
 
   boolean openned = false;
 
-  ArrayList<BPMFile> files = new ArrayList<BPMFile>();
+  ArrayList<BPMFile> remoteFiles = new ArrayList<BPMFile>();
 
-  public BPMFileSystem(PApplet parent) {
-    super();
-    this.parent = parent;
+  ArrayList<BPMFile> localFiles = new ArrayList<BPMFile>();
+
+  public BPMFileSystem() {
   }
 
 
@@ -67,21 +65,43 @@ public class BPMFileSystem {
     openned = true;
   }
 
-  public void loadFiles(ArrayList<String> dataFiles) {
-    files.clear();
+  public void loadLocalFiles() {
+    localFiles.clear();
+    File repo = new File(getParamValue("REPO"));
+    if (repo.exists()) {
+      File fls[] = repo.listFiles();
+      for (File f : fls) {
+        if (f.getName().contains(".CSV")) {
+          Date mdf = new Date(f.lastModified());         
+          String data = f.getName() + ";" + fmdtf.format(mdf) + ";" + Math.abs(f.length());
+          BPMFile file = new BPMFile(data);
+          localFiles.add(file);
+        }
+      }
+      Collections.sort(localFiles, new Comparator<BPMFile>() {
+        public int compare(BPMFile o2, BPMFile o1) {
+          return o1.name.compareTo(o2.name);
+        }
+      }     
+      );
+    }
+  }
+
+  public void loadRemoteFiles(ArrayList<String> dataFiles) {
+    remoteFiles.clear();
     fsCountFiles = 0;
     fsBmpFiles = 0;
     for (String data : dataFiles) {
       BPMFile file = new BPMFile(data);
       fsUsed += new Float(file.size);
       if (data.contains(".CSV")) {
-        files.add(file);
+        remoteFiles.add(file);
         fsBmpFiles++;
       }
       fsCountFiles++;
     }
     fsUsed = (fsUsed / 2048);
-    Collections.sort(files, new Comparator<BPMFile>() {
+    Collections.sort(remoteFiles, new Comparator<BPMFile>() {
       public int compare(BPMFile o2, BPMFile o1) {
         return o1.name.compareTo(o2.name);
       }
@@ -92,7 +112,7 @@ public class BPMFileSystem {
   public boolean deleteFile(BPMFile file, ArrayList<String> deleteFileData) {
     String ret = deleteFileData.get(0);
     if (ret.contains("FILEDELETED")) {
-      files.remove(file);
+      remoteFiles.remove(file);
       return true;
     }
     return false;
@@ -123,7 +143,11 @@ public class BPMFileSystem {
     return openned;
   }
 
-  public ArrayList<BPMFile> getFileNames() {
-    return files;
+  public ArrayList<BPMFile> getLocalFiles() {
+    return localFiles;
+  }
+
+  public ArrayList<BPMFile> getRemoteFiles() {
+    return remoteFiles;
   }
 }

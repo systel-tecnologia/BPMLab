@@ -25,7 +25,6 @@ public class BPMConnection {
 
   public static final String  CMD_PROCESS_CANCEL = "PROCESSCANCEL";
 
-  PApplet owner;
   Serial device;  // Create object from Serial class
 
   int bauds[] = {4800, 9600, 19200, 38400, 57600, 115200};
@@ -39,9 +38,7 @@ public class BPMConnection {
   String param = "";
   String error = "";
 
-  public BPMConnection(PApplet parent) {
-    super();
-    owner = parent;
+  public BPMConnection() {
     connected = false;
     listen = false;
   }
@@ -50,10 +47,14 @@ public class BPMConnection {
     return bauds;
   }
   public String[] portList() {
-    return Serial.list();
+    String[] list = Serial.list();
+    if (list == null || list.length == 0) {
+      return new String[]{"COM1"};
+    }
+    return list;
   }
 
-  public void openDevice(String portName, int baunds) {
+  public void openDevice(PApplet parent, String portName, int baunds) {
     try {
       error = "";
       connected = false;
@@ -61,12 +62,12 @@ public class BPMConnection {
         device.clear();
         device.stop();
       }
-      device = new Serial(owner, portName, baunds);
+      device = new Serial(parent, portName, baunds);
       device.clear();
       deviceIsOpen = device.active();
     } 
     catch(Exception e) {
-      txaLog.appendText(e.getMessage());
+      logger(e.getMessage());
       e.printStackTrace();
     }
   }
@@ -74,11 +75,11 @@ public class BPMConnection {
   public void  process(String buffer) {
     println(buffer);
     if (buffer.contains(" START") || buffer.contains(" END") || buffer.contains("Serial") || buffer.contains("BPM Lab")) {
-      txaLog.appendText(buffer);
+      logger(buffer);
     }
     if (buffer.contains("ERROR Found Code")) {
       error = buffer;
-      txaLog.appendText(error);
+      logger(error);
     }
 
     if (!isErrorFound()) {
@@ -103,11 +104,11 @@ public class BPMConnection {
   private void checkStartedProcess(String data) {
     if (data.contains("Open File")) {
       processStarted = true;
-      txaLog.appendText("Processing::BPM Process Start");
-      txaLog.appendText("Processing::Running");
+      logger("Processing::BPM Process Start");
+      logger("Processing::Running");
     } else if (data.contains("Close File")) {
       processStarted = false;
-      txaLog.appendText("Processing::BPM Process Stop");
+      logger("Processing::BPM Process Stop");
     }
   }
 
@@ -193,7 +194,7 @@ public class BPMConnection {
     }
     this.command = "";
     dataReaded = "";
-    txaLog.appendText("Processing::Data Received...");
+    logger("Processing::Data Received...");
     return list;
   }
 
@@ -201,7 +202,7 @@ public class BPMConnection {
     if (!listen) {
       if (data.contains("BPM Lab Waiting for Connections...")) {
         listen = true;
-        txaLog.appendText("Processing::Send Connection Code...");
+        logger("Processing::Send Connection Code...");
         device.write("BPMLabAdm");
       }
     }
@@ -211,7 +212,7 @@ public class BPMConnection {
   private  boolean isConnect(String data) {
     if (!connected) {
       if (data.indexOf("BPM Connection Success. Wait for commands...") >= 0) {
-        txaLog.appendText("Processing::Connected to BPM Lab");
+        logger("Processing::Connected to BPM Lab");
         connected = true;
       }
     }
@@ -221,7 +222,7 @@ public class BPMConnection {
   private void connect(String data) {
     if (isBPMLabListen(data)) {
       if (isConnect(data)) {
-        txaLog.appendText("Processing::BPMLab Dashboard Connected");
+        logger("Processing::BPMLab Dashboard Connected");
       }
     }
   }

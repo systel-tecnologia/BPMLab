@@ -20,6 +20,7 @@ class BPMAnalysys {
   int transitions = 0;
   int holePokes = 0;
   int rearings = 0;
+  String rows[] = {};
   List<BPMRoute> routes = new ArrayList<BPMRoute>();
 }
 
@@ -35,20 +36,14 @@ public class DataLocation {
 
 public class BPMDataFileReader {
 
-  private String fileName = "";
-
   private boolean fileOpen = false;
 
-  public BPMDataFileReader(PApplet parent) {
+  public BPMDataFileReader() {
     super();
   }
 
   public DataLocation processData(String data) {
-    setFileName(data);
     return extractDataLocation(data);
-  }
-
-  public void processData(File file) {
   }
 
   public void closeFile() {
@@ -70,22 +65,8 @@ public class BPMDataFileReader {
     return dataLocation;
   }
 
-  private void setFileName(String data) {
-    if (!fileOpen) {
-      String[] parts = data.split(" ");
-      for (int i = 0; i < parts.length; i++) {
-        if (parts[i].startsWith("BPMDF")) {
-          fileOpen = true;
-          fileName = parts[i];
-          break;
-        }
-      }
-    }
-  }
-
-
   public BPMAnalysys analyzeBPMFile(File file) {
-    txaLog.appendText("Processing:: Analyzing "+ file.getName()  +" File...");
+    logger("Processing:: Analyzing "+ file.getName()  +" File...");
 
     BPMAnalysys analysys = new BPMAnalysys();
     int transitions = 0;
@@ -126,13 +107,21 @@ public class BPMDataFileReader {
             rgs++;
           }
         }
+        rg = newRg;
       }
       i++;
     }
+
+    analysys.rows = table;
     analysys.rearings = rgs;
     analysys.holePokes = hps;
     analysys.registers = table.length;
     analysys.transitions = transitions;
+
+    logger(analysys.transitions + " Transitions Found");
+    logger(analysys.holePokes + " HolePokes Found");
+    logger(analysys.rearings + " Rearings Found");
+
     return analysys;
   }
 
