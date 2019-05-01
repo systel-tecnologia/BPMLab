@@ -40,10 +40,11 @@ public class BPMConnection {
   public int[] baudRates() {
     return bauds;
   }
+  
   public String[] portList() {
     String[] list = Serial.list();
     if (list == null || list.length == 0) {
-      return new String[]{"COM1"};
+      return new String[]{"Not Found"};
     }
     return list;
   }
@@ -61,8 +62,10 @@ public class BPMConnection {
       deviceIsOpen = device.active();
     } 
     catch(Exception e) {
+      println("ERRO");
       logger(e.getMessage());
       e.printStackTrace();
+      throw e;
     }
   }
 

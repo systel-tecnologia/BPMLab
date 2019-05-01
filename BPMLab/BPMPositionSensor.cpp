@@ -40,27 +40,24 @@ void BPMPositionSensor::clear(void) {
 
 SensorData BPMPositionSensor::readData(void) {
 	SensorData ret;
+	int i = 0;
 	for (int colIndex = 0; colIndex < tx.getColsSize(); colIndex++) {
 		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
-			delay(1);
 			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
 				tx.write(colIndex, rowIndex, HIGH);
-				int value1 = rx.read(rowIndex);
-				int value2 = rx.read(rowIndex);
-				int value3 = rx.read(rowIndex);
+				delay(1);
+				byte value = rx.read(rowIndex);
 
 				if ((colIndex == 5 && rowIndex == 6)
-						|| (colIndex == 0 && rowIndex == 0)
-						|| (colIndex == 0 && rowIndex == 2)
-						|| (colIndex == 0 && rowIndex == 3)
-						|| (colIndex == 1 && rowIndex == 2)
-						|| (colIndex == 3 && rowIndex == 0)
-						|| (colIndex == 5 && rowIndex == 0)
-						|| (colIndex == 5 && rowIndex == 7)) {
-					value1 = 0;
+						|| (colIndex == 5 && rowIndex == 2)
+						|| (colIndex == 0 && rowIndex == 6)
+						|| (colIndex == 2 && rowIndex == 1)) {
+					value = 0;
 				}
 
-				ret.value[colIndex][rowIndex] = (value1 & value2 & value3);
+				ret.value[colIndex][rowIndex] = value;
+				ret.log[i] = (value + 48);
+				i++;
 #if(DEBUG_LEVEL >= 4)
 				DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
 				DBG_PRINT_LEVEL(colIndex);
@@ -80,9 +77,6 @@ SensorData BPMPositionSensor::readData(void) {
 
 PositionData BPMPositionSensor::read(void) {
 	PositionData positionData;
-	int width = 0;
-	int heigth = 0;
-	int length = 0;
 	int x = -1;
 	int y = -1;
 	int z = -1;
@@ -95,13 +89,13 @@ PositionData BPMPositionSensor::read(void) {
 				if (data.value[colIndex][rowIndex] == 1) {
 					if (colIndex <= 2) { // Map x
 						x = (colIndex * rs) + rowIndex;
-						width++;
+						break;
 					} else if (colIndex <= 4) { // Map y
 						y = (((colIndex - 3) * rs) + rowIndex) - 1;
-						heigth++;
+						break;
 					} else { //Map z
 						z = ((colIndex - 5) * rs) + rowIndex;
-						length++;
+						break;
 					}
 				}
 			}
@@ -112,10 +106,6 @@ PositionData BPMPositionSensor::read(void) {
 	positionData.x = x;
 	positionData.y = y;
 	positionData.z = z;
-	if (x == -1 || y == -1) {
-		positionData.x = -1;
-		positionData.y = -1;
-	}
 	return positionData;
 }
 

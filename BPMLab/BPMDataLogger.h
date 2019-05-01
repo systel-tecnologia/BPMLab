@@ -66,7 +66,7 @@ class BPMDataLogger {
 
 		void setup (void);
 
-		void write (char *format, ...);
+		void write (int bufferSize, char *format, ...);
 
 		void setFileName (char *format, ...);
 

@@ -73,6 +73,7 @@ String log = " ";
 int formIndex = -1;
 PImage forms[] = {};
 String params[];
+String[] portList;
 LocalDateTime startTime;
 BPMConfig config;
 BPMAnalysis analysis;
@@ -324,35 +325,40 @@ public void updateFileListBox() {
 }
 
 public void btnCommPortClick(GButton source, GEvent event) {
-  if (!bpmConnection.isConnected()) {
-    int reply = G4P.selectOption(this, "Reset BPMLab and starts connection?", "Confirm", G4P.WARNING, G4P.YES_NO);
-    if (reply == G4P.OK) {
-      cursor(WAIT);
-      reset();
-      bpmConnection.openDevice(this, portName, baud);
-      while (!bpmConnection.isConnected()) {
-        if (bpmConnection.isErrorFound()) {
-          String error = bpmConnection.errorFound();
-          if (error.contains("SD Card")) {
-            formIndex = SD_CARD_FORM_ERROR;
+  printArray(portList);
+  if (portList == null || portList.length == 0 || portList[0].equals("Not Found")) {
+    G4P.showMessage(this, "Connection Port is not present!", "Information", G4P.INFO);
+  } else { 
+    if (!bpmConnection.isConnected()) {
+      int reply = G4P.selectOption(this, "Reset BPMLab and starts Remote Connection?", "Confirm", G4P.WARNING, G4P.YES_NO);
+      if (reply == G4P.OK) {
+        cursor(WAIT);
+        reset();
+        bpmConnection.openDevice(this, portName, baud);
+        while (!bpmConnection.isConnected()) {
+          if (bpmConnection.isErrorFound()) {
+            String error = bpmConnection.errorFound();
+            if (error.contains("SD Card")) {
+              formIndex = SD_CARD_FORM_ERROR;
+            }
+            if (error.contains("Time Clock")) {
+              formIndex = RTC_FORM_ERROR;
+            }
+            break;
           }
-          if (error.contains("Time Clock")) {
-            formIndex = RTC_FORM_ERROR;
-          }
-          break;
+          delay(100);
         }
-        delay(100);
+        if (!bpmConnection.isErrorFound()) {
+          btnCommPort.setText("Disconnect");
+          loadAllInitialData();
+        }
+        cursor(ARROW);
       }
-      if (!bpmConnection.isErrorFound()) {
-        btnCommPort.setText("Disconnect");
-        loadAllInitialData();
+    } else {
+      int reply = G4P.selectOption(this, "Close connection and exit?", "Confirm", G4P.WARNING, G4P.YES_NO);
+      if (reply == G4P.OK) {
+        exit();
       }
-      cursor(ARROW);
-    }
-  } else {
-    int reply = G4P.selectOption(this, "Close connection and exit?", "Confirm", G4P.WARNING, G4P.YES_NO);
-    if (reply == G4P.OK) {
-      exit();
     }
   }
 }
@@ -673,7 +679,8 @@ public void createControls() {
   sdrBps.addEventHandler(this, "sdrBpsChange");
 
   drpCommPort = new GDropList(this, 20, 95, 100, 110, 0, 30);
-  drpCommPort.setItems(bpmConnection.portList(), 0);
+  portList = bpmConnection.portList();
+  drpCommPort.setItems(portList, 0);
   drpCommPort.setLocalColorScheme(GCScheme.GREEN_SCHEME);
   drpCommPort.addEventHandler(this, "drpCommPortSelect");
 
@@ -1088,7 +1095,7 @@ public void updateAnalysys(BPMAnalysis analysis) {
       GPoint p1 = new GPoint(row.pos_x, row.pos_y);
       points3.add(p1);
     }
-    
+
     GPoint p2 = new GPoint(i, row.hp);
     points4.add(p2);
 

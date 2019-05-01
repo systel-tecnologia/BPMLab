@@ -55,16 +55,15 @@ void BPMDataLogger::setup(void) {
 	}
 }
 
-void BPMDataLogger::write(char *format, ...) {
-	char record[60];
+void BPMDataLogger::write(int bufferSize, char *format, ...) {
+	char record[bufferSize];
 	va_list args;
 	va_start(args, format);
-	vsnprintf(record, 80, format, args);
+	vsnprintf(record, bufferSize, format, args);
 	va_end(args);
 #if(DEBUG_LEVEL >= 3)
 	DBG_PRINTLN_LEVEL(record);
 #endif
-
 	if (dataFile) {
 		dataFile.println(record);
 	}
@@ -72,7 +71,7 @@ void BPMDataLogger::write(char *format, ...) {
 }
 
 void BPMDataLogger::write(RecordData data) {
-	write((char*) RECORD_FORMAT, data.dateTime.day(), data.dateTime.month(),
+	write(80, (char*) RECORD_FORMAT, data.dateTime.day(), data.dateTime.month(),
 			data.dateTime.year(), data.dateTime.hour(), data.dateTime.minute(),
 			data.dateTime.second(), data.position.x, data.position.y,
 			data.position.z, data.holePoke);
@@ -88,7 +87,7 @@ void BPMDataLogger::openFile(int id, DateTime dateTime) {
 #endif
 	// Abrindo Arquivo
 	dataFile = SD.open(getFileName(), FILE_WRITE);
-	write((char*) HEADER_FORMAT);
+	write(80, (char*) HEADER_FORMAT);
 	dataFile.close();
 	dataFile = SD.open(getFileName(), FILE_WRITE);
 	if (dataFile) {
