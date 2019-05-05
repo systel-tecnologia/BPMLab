@@ -1082,7 +1082,7 @@ public void updateAnalysys(BPMAnalysis analysis) {
     j++;
   }
 
-  plotQuads.setXLim(0, analysis.route.size()+1);
+  plotQuads.setXLim(0, analysis.route.size());
   plotQuads.setPoints(points2);
 
   // Data Path, hp, rearing
