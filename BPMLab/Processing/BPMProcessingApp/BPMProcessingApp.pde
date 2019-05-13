@@ -19,6 +19,7 @@ import java.util.*;
 import java.time.*;
 import java.time.temporal.*;
 import grafica.*;
+import at.mukprojects.console.*;
 
 // Static Definition
 public static final int BPM_ALPHA = 30;
@@ -36,6 +37,7 @@ private BPMDataFileReader bpmDataFileReader;
 private BPMFileSystem bpmFileSystem;
 
 // Controls Main
+Console console;
 PFont font0, font1, font2, font3;
 GKnob kb;
 ControlP5 cp5;
@@ -50,7 +52,6 @@ GLabel lblDiskType, lblDiskSys, lblDiskSize, lblDiskUse, lblFiles, lblbpmFiles;
 GButton btnCommPort, btnDownload, btnDelete, btnAnalyze1; 
 GDropList drpCommPort;  
 GSlider sdrBps; 
-GTextArea txaBPMLog; 
 PImage rtcError, sdCardError;
 PImage mainForm, cancelForm, startForm, doneForm;
 GButton btnStart, btnSetup, btnCancel, btnDone, btnConnect, btnAnalyze2;
@@ -60,8 +61,8 @@ GLabel lblFile2, lblStat;
 GLabel lblttFileName2, lblttFileRepo, lblttFileDate2, lblttFileSize2;
 GLabel lblFileRepo, lblFileDate2, lblFileSize2;
 GLabel lblttMoviments, lblttHolePokes, lblttRearings;
-GLabel lblMoviments, lblHolePokes, lblRearings;
-GLabel lblttRecords, lblttTmCount, lblRecords, lblTmCount;
+GLabel lblMoviments, lblHolePokes, lblRearings, lblLatency;
+GLabel lblttRecords, lblttTmCount, lblRecords, lblTmCount, lblttLatency;
 GPlot plotBars, plotQuads, plotRoutes, plotRearing, plotHp;
 
 
@@ -107,6 +108,15 @@ class BPMConfig {
 
 void setup() {
   size(1270, 720, JAVA2D);
+ 
+   // Initialize the console 
+  console = new Console(this);
+  // Start the console
+  console.start();
+  console.setTimestamp(false);
+  console.setAutoPrint(true);
+  console.setCutMove(true);
+  
   font0 = createFont("Arial", 16);
   font1 = createFont("Arial", 18);
   font2 = createFont("Arial", 25);
@@ -128,6 +138,7 @@ void setup() {
   G4P.setCursor(ARROW);
   surface.setTitle("BPMLab Dashboard");
   grpMain = new GGroup(this);  
+
   createControls();
   createGUI();
   createControlsAnalysis();
@@ -171,7 +182,6 @@ void reset() {
   config = new BPMConfig();
 
   // Controls
-  txaBPMLog.setText("");
   drpfiles.clear();
   btnCommPort.setEnabled(true);
   btnCommPort.setText("Connect");
@@ -217,7 +227,6 @@ void draw() {
   stroke(0);
   strokeWeight(2);
   fill(200, 210, 200);
-
   if (formIndex > -1) {
     image(forms[formIndex], 35, 180, 200, 290);
     btnStart.setVisible(formIndex == MAIN_FORM);
@@ -255,6 +264,7 @@ void draw() {
     bpmArena.setPosition(data);
   }
   bpmArena.update();
+  console.draw( 20, 520, 950, 700);
 }
 
 void serialEvent(Serial device) {
@@ -621,13 +631,6 @@ public void saveParams() {
 
 
 public void createControls() {
-  txaBPMLog = new GTextArea(this, 20, 520, 930, 180, G4P.SCROLLBARS_VERTICAL_ONLY);
-  txaBPMLog.setText("");
-  txaBPMLog.setLocalColor(70, 60);
-  txaBPMLog.setLocalColorScheme(GCScheme.GREEN_SCHEME);
-  txaBPMLog.setOpaque(true);
-  txaBPMLog.setTextEditEnabled(false);
-
   //Console Group
   lblConsole = new GLabel(this, 20, 155, 190, 20);
   lblConsole.setText("Remote Console");
@@ -932,17 +935,22 @@ public void createControlsAnalysis() {
   lblttTmCount.setTextBold();
   lblttTmCount.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttMoviments = new GLabel(analyzeWindow, 30, 210, 190, 20);
+  lblttLatency = new GLabel(analyzeWindow, 30, 210, 190, 20);
+  lblttLatency.setText("Latency:");
+  lblttLatency.setTextBold();
+  lblttLatency.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblttMoviments = new GLabel(analyzeWindow, 30, 230, 190, 20);
   lblttMoviments.setText("Moviment:");
   lblttMoviments.setTextBold();
   lblttMoviments.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttHolePokes = new GLabel(analyzeWindow, 30, 230, 190, 20);
+  lblttHolePokes = new GLabel(analyzeWindow, 30, 250, 190, 20);
   lblttHolePokes.setText("Hole Poke:");
   lblttHolePokes.setTextBold();
   lblttHolePokes.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblttRearings = new GLabel(analyzeWindow, 30, 250, 190, 20);
+  lblttRearings = new GLabel(analyzeWindow, 30, 270, 190, 20);
   lblttRearings.setText("Rearing:");
   lblttRearings.setTextBold();
   lblttRearings.setLocalColorScheme(GCScheme.BLUE_SCHEME);
@@ -955,15 +963,19 @@ public void createControlsAnalysis() {
   lblTmCount.setText("0");
   lblTmCount.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblMoviments = new GLabel(analyzeWindow, 95, 210, 190, 20);
+  lblLatency = new GLabel(analyzeWindow, 85, 210, 190, 20);
+  lblLatency.setText("0");
+  lblLatency.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+
+  lblMoviments = new GLabel(analyzeWindow, 95, 230, 190, 20);
   lblMoviments.setText("0");
   lblMoviments.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblHolePokes = new GLabel(analyzeWindow, 95, 230, 190, 20);
+  lblHolePokes = new GLabel(analyzeWindow, 95, 250, 190, 20);
   lblHolePokes.setText("0");
   lblHolePokes.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 
-  lblRearings = new GLabel(analyzeWindow, 90, 250, 190, 20);
+  lblRearings = new GLabel(analyzeWindow, 90, 270, 190, 20);
   lblRearings.setText("0");
   lblRearings.setLocalColorScheme(GCScheme.BLUE_SCHEME);
 }
@@ -976,8 +988,8 @@ public void createGraphicsAnalysis() {
   points1.add(1, 0, "Hole Poke");
   points1.add(2, 0, "Rearing");
   plotBars = new GPlot(analyzeWindow);
-  plotBars.setPos(25, 280);
-  plotBars.setDim(150, 240);
+  plotBars.setPos(25, 300);
+  plotBars.setDim(150, 215);
   plotBars.setYLim(0, 1);
   plotBars.setXLim(-1, 3);
   plotBars.getTitle().setText("Statistic ( Time 0 min )");
@@ -1051,6 +1063,7 @@ public void resetAnalyzeWindow() {
   lblMoviments.setText("0 ( routes )");
   lblHolePokes.setText("0 ( inputs )");
   lblRearings.setText("0 ( ups )");
+  lblLatency.setText("0 ( rows / seconds )");
   lblFilesAnalyze.setText("");
   lblFileDate2.setText("");
   lblFileSize2.setText(0 + "KB");
@@ -1062,6 +1075,7 @@ public void updateAnalysys(BPMAnalysis analysis) {
   lblMoviments.setText(analysis.moviments + " ( routes )");
   lblHolePokes.setText(analysis.holePokes + " ( inputs )");
   lblRearings.setText(analysis.rearings + " ( ups )");
+  lblLatency.setText(analysis.latency + " ( rows / second )");
 
   // Data Stat
   points1 = new GPointsArray(3);

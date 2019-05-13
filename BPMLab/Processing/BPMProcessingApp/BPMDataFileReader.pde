@@ -52,6 +52,7 @@ class BPMAnalysis {
   int holePokes = 0;
   int rearings = 0;
   int timeCount = 0;
+  int latency = 0;
   List<BPMRoute> route = new ArrayList<BPMRoute>();
   List<BPMRegister> row = new ArrayList<BPMRegister>();
 }
@@ -132,6 +133,7 @@ public class BPMDataFileReader {
     analysis.rearings = reags;
     analysis.holePokes = hps;
     analysis.registers = analysis.row.size();
+    analysis.latency = (analysis.registers / (analysis.timeCount * 60));  
     analysis.moviments = transitions;
     logger(analysis.moviments + " Transitions Found");
     logger(analysis.holePokes + " HolePokes Found");

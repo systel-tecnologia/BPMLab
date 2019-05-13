@@ -150,15 +150,15 @@ public class BPMArena {
 
     // Quadrants
     textFont(font3, 35);
-    text("1", 400, 120);
-    text("2", 600, 120);
-    text("3", 800, 120);
-    text("4", 400, 220);
-    text("5", 600, 220);
-    text("6", 800, 220);
-    text("7", 400, 320);
-    text("8", 600, 320);
-    text("9", 800, 320);
+    text("1", 400, 80);
+    text("2", 600, 80);
+    text("3", 800, 80);
+    text("4", 400, 190);
+    text("5", 600, 190);
+    text("6", 800, 190);
+    text("7", 400, 290);
+    text("8", 600, 290);
+    text("9", 800, 290);
 
     // Arena Draw
     textFont(font1, 20);
