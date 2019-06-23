@@ -233,12 +233,12 @@ void BPMProcessPage::show(void) {
 
 void BPMProcessPage::refresh(void) {
 	if (bpmLab.isRunning()) {
+		updateDateTime(bpmLab.getElapsedTime());
 		currentValue = bpmLab.getCurrentProgress();
-		if (previousValue != currentValue) {
-			updateDateTime(bpmLab.getElapsedTime());
+		if ((currentValue == 0) || (previousValue != currentValue)) {
 			updateStates();
+			previousValue = currentValue;
 		}
-		previousValue = currentValue;
 	}
 }
 

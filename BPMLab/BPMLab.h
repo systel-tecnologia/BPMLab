@@ -127,6 +127,8 @@ class BPMLab {
 
 		DateTime startDateTime;
 
+		DateTime oldDateTime;
+
 		TimeSpan elapsedTime = TimeSpan(0, 0, 0, 0);
 
 		TimeSpan endTime = TimeSpan(0, 0, 0, 0);

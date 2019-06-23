@@ -157,6 +157,7 @@ void BPMLab::start(void) {
 	elapsedTime = TimeSpan(0);
 	endTime = TimeSpan(configuration.totalProcessSeconds);
 	startDateTime = rtc.now();
+	oldDateTime = startDateTime;
 	calculateElapsedTime(startDateTime);
 	if (!dataLogger.isFileOpen()) {
 		dataLogger.openFile(configuration.fileIndex++, startDateTime);
@@ -266,22 +267,21 @@ void BPMLab::listeningConnections(void) {
 }
 
 DateTime BPMLab::getCurrenteDateTime(boolean throwException) {
-	int i = 0;
 	DateTime now = rtc.now();
-	while (now.day() > 31) {
-		now = rtc.now();
-		i++;
-		if (i > 5) {
-			break;
-		}
-	}
-	if (now.day() > 31 && throwException) {
+	boolean erro = (now.day() > 31 || now.month() > 12 || now.year() > 2045);
+	if (erro && throwException) {
 		if (isRunning()) {
 			stop();
 		}
 		exceptionHandler.exceptionDetected(TIME_CLOCK_ERROR);
 		gotoPage(&exceptionPage);
 	}
+
+	if(erro) {
+		now = oldDateTime;
+	}
+	oldDateTime = now;
+
 	return now;
 }
 
