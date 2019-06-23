@@ -268,7 +268,7 @@ void BPMLab::listeningConnections(void) {
 
 DateTime BPMLab::getCurrenteDateTime(boolean throwException) {
 	DateTime now = rtc.now();
-	boolean erro = (now.day() > 31 || now.month() > 12 || now.year() > 2045);
+	boolean erro = (now.day() > 31 || now.month() > 12 || now.second() > 59 || now.minute() > 59 || now.hour() > 23);
 	if (erro && throwException) {
 		if (isRunning()) {
 			stop();
