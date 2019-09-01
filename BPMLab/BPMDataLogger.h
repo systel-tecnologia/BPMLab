@@ -1,7 +1,7 @@
 /*
  File  : BPMDataLogger.h
- Version : 1.0
- Date  : 13/03/2019
+ Version : 2.0
+ Date  : 30/08/2019
  Project : Systel BPM Data Logger Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
@@ -22,15 +22,9 @@
 #define DTLOG_D1_PIN  12
 #define DTLOG_CK_PIN  13
 
-static const char* HEADER_FORMAT = "DATE;TIME;X;Y;Z;HP";
-static const char* RECORD_FORMAT = "%.2d-%.2d-%.4d;%.2d:%.2d:%.2d;%.2d;%.2d;%.2d;%.2d";
+static const char* HEADER_FORMAT = "TIME;X;Y;Z;HP";
+static const char* RECORD_FORMAT = "%ld;'%s;'%s;'%s;'%s";
 static const char* FILE_NAME_FORMAT = "BPMDF%.3d.CSV";
-
-struct RecordData {
-		DateTime dateTime;
-		PositionData position;
-		int holePoke = 0;
-};
 
 // library interface description
 class BPMDataLogger {
@@ -41,7 +35,7 @@ class BPMDataLogger {
 
 		void start (void);
 
-		void write (RecordData data);
+		void write(unsigned long time, SensorData* data);
 
 		void openFile (int id, DateTime dateTime);
 

@@ -1,7 +1,7 @@
 /*
  File  : InfraredMTX595D.h
- Version : 1.0
- Date  : 04/03/2019
+ Version : 2.0
+ Date  : 20/08/2019
  Project : Systel BPM Data Transmiter InfraRed Matrix Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
@@ -34,68 +34,71 @@
 #include <DataSenderDevice.h>
 
 #if defined(__AVR_ATmega2560__)
-#define PIN_CLK_ROW    36 	// CLK_ROW    36  // SRCLK 74HC595x PIN (11)SRCLK (11)
-#define PIN_LATCH_ROW  38 	// LATCH_ROW  38  // RCLK  74HC595x PIN (12)RCLK (12) 
-#define PIN_DATA_ROW   40  	// DATA_ROW   40  // SER   74HC595x PIN (14)SER (14)
+#define PIN_CLK_LB    36 	// CLK_LB    36  // SRCLK 74HC595x PIN (11)SRCLK (11)
+#define PIN_LATCH_LB  38 	// LATCH_LB  38  // RCLK  74HC595x PIN (12)RCLK (12)
+#define PIN_DATA_LB   40  	// DATA_LB   40  // SER   74HC595x PIN (14)SER (14)
 
-#define PIN_CLK_COL    30 	// CLK_COL    30  // SRCLK 74HC595x PIN (11)SRCLK (11)
-#define PIN_LATCH_COL  32 	// LATCH_COL  32  // RCLK  74HC595x PIN (12)RCLK (12) 
-#define PIN_DATA_COL   34 	// DATA_COL   34  // SER   74HC595x PIN (14)SER (14)
+#define PIN_CLK_SG    30 	// CLK_SG    30  // SRCLK 74HC595x PIN (11)SRCLK (11)
+#define PIN_LATCH_SG  32 	// LATCH_SG  32  // RCLK  74HC595x PIN (12)RCLK (12)
+#define PIN_DATA_SG   34 	// DATA_SG   34  // SER   74HC595x PIN (14)SER (14)
 #else
-#define PIN_CLK_ROW    13 	// CLK_ROW    13  // SRCLK 74HC595x PIN (11)
-#define PIN_LATCH_ROW  12 	// LATCH_ROW  12  // RCLK  74HC595x PIN (12) 
-#define PIN_DATA_ROW   11  	// DATA_ROW   11  // SER   74HC595x PIN (14)
+#define PIN_CLK_LB   13 	// CLK_LB    13  // SRCLK 74HC595x PIN (11)
+#define PIN_LATCH_LB 12 	// LATCH_LB  12  // RCLK  74HC595x PIN (12)
+#define PIN_DATA_LB  11  	// DATA_LB   11  // SER   74HC595x PIN (14)
 
-#define PIN_CLK_COL    10 	// CLK_COL    10  // SRCLK 74HC595x PIN (11)
-#define PIN_LATCH_COL  9 	// LATCH_COL  9   // RCLK  74HC595x PIN (12) 
-#define PIN_DATA_COL   8 	// DATA_COL   8   // SER   74HC595x PIN (14)
+#define PIN_CLK_SG   10 	// CLK_SG    10  // SRCLK 74HC595x PIN (11)
+#define PIN_LATCH_SG 9 		// LATCH_SG  9   // RCLK  74HC595x PIN (12)
+#define PIN_DATA_SG  8 		// DATA_SG   8   // SER   74HC595x PIN (14)
 #endif
 
 #define CLOCK 0
 #define LATCH 1
 #define DATA  2
 
-#define DEFAULT_COL_COUNT  	7			// Colunms Sensor Grid Size
-#define DEFAULT_ROW_COUNT  	8			// Rows Sensor Grid Size 
-
 // library interface description
 class InfraredMTX595D: public DataSenderDevice {
-		// user-accessible "public" interface
-	public:
+	// user-accessible "public" interface
+public:
 
-		InfraredMTX595D ();
+	InfraredMTX595D();
 
-		void start (void);
+	void start(byte *segments, byte *lightBeans, int segmentSize,
+			int lightBeamSize);
 
-		void start (int colsCount, int rowsCount);
+	void start(byte *latchSegmentPins, byte *latchLightBeamPins, byte *segments,
+			byte *lightBeans, int segmentSize, int lightBeamSize);
 
-		void start (byte *latchColPins, byte *latchRowPins, int colsCount, int rowsCount);
+	void write(int index, byte data);
 
-		void write (int col, int row, int data);
+	void write(const int segment, const int lightBeam, byte data);
 
-		void clear ();
+	void clear();
 
-		int getColsSize ();
+	int getLightBeamCount();
 
-		int getRowsSize ();
+	int getSegmentCount();
 
-		// library-accessible "protected" interface
-	protected:
+	// library-accessible "protected" interface
+protected:
 
-		void setup (void);
+	void setup(void);
 
-		void write (byte *latchPins, const byte data);
+	void write(byte *latchPins, const byte data);
 
-		// library-accessible "private" interface
-	private:
+	// library-accessible "private" interface
+private:
 
-		int rows = 0;
+	int lightBeamCount = 0;
 
-		int cols = 0;
+	int segmentCount = 0;
 
-		byte *colPins = 0;
+	byte *selectLightBeans = 0;
 
-		byte *rowPins = 0;
+	byte *selectedSegments = 0;
+
+	byte *segmentPins = 0;
+
+	byte *lightBeamPins = 0;
 
 };
 

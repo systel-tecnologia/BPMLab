@@ -135,7 +135,7 @@ void BPMLogoPage::show(void) {
 	drawIcon(15, 70, bpmLogo, 209, 72, BLUE);
 	tft.setTextColor(BLUE, WHITE);
 	tft.setTextSize(FONT_SIZE_40);
-	tft.print("V1.0", 70, 180);
+	tft.print("V2.0", 70, 180);
 	tft.setTextSize(FONT_SIZE_20);
 	tft.print("Starting...", 65, 250);
 #if(DEBUG_LEVEL >= 4)

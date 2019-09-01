@@ -61,20 +61,12 @@ void BPMDataLogger::write(int bufferSize, char *format, ...) {
 	va_start(args, format);
 	vsnprintf(record, bufferSize, format, args);
 	va_end(args);
-#if(DEBUG_LEVEL >= 3)
-	DBG_PRINTLN_LEVEL(record);
-#endif
-	if (dataFile) {
-		dataFile.println(record);
-	}
-
+	Serial.println(record);
+	dataFile.println(record);
 }
 
-void BPMDataLogger::write(RecordData data) {
-	write(80, (char*) RECORD_FORMAT, data.dateTime.day(), data.dateTime.month(),
-			data.dateTime.year(), data.dateTime.hour(), data.dateTime.minute(),
-			data.dateTime.second(), data.position.x, data.position.y,
-			data.position.z, data.holePoke);
+void BPMDataLogger::write(unsigned long time, SensorData* data) {
+	write(100, (char*) RECORD_FORMAT, time, data->x, data->y, data->z, data->h);
 }
 
 void BPMDataLogger::openFile(int id, DateTime dateTime) {

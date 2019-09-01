@@ -1,51 +1,11 @@
 /*
  File  : BPMPositionSensor.h
- Version : 1.0
- Date  : 05/03/2019
+ Version : 2.0
+ Date  : 30/08/2019
  Project : Systel BPM Position Sensor Grid Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
- Infrared Matrix Data Transmiter Config
- 
- For Uno:
- CLK_ROW    13  // SRCLK 74HC595x PIN (11)
- LATCH_ROW  12  // RCLK  74HC595x PIN (12) 
- DATA_ROW   11  // SER   74HC595x PIN (14)
-
- CLK_COL    10  // SRCLK 74HC595x PIN (11)
- LATCH_COL  11  // RCLK  74HC595x PIN (12) 
- DATA_COL   12  // SER   74HC595x PIN (14)
-
- For Mega:
- CLK_ROW    36  // SRCLK 74HC595x PIN (11)
- LATCH_ROW  38  // RCLK  74HC595x PIN (12) 
- DATA_ROW   40  // SER   74HC595x PIN (14)
-
- CLK_COL    30  // SRCLK 74HC595x PIN (11)
- LATCH_COL  32  // RCLK  74HC595x PIN (12) 
- DATA_COL   34  // SER   74HC595x PIN (14)
- 
- Infrared Octet Data Receiver
- 
- For Uno:
- DATA 1  6       // bit 0 Data Receiver
- DATA 2  7		// bit 1 Data Receiver
- DATA 3  8		// bit 2 Data Receiver
- DATA 4  9		// bit 3 Data Receiver
- DATA 5  10		// bit 4 Data Receiver
- DATA 6  11		// bit 5 Data Receiver	
- DATA 7  12		// bit 6 Data Receiver
- DATA 8  13		// bit 7 Data Receiver
- 
- For Mega:
- DATA 1  A8      // bit 0 Data Receiver
- DATA 2  A9		// bit 1 Data Receiver
- DATA 3  A10		// bit 2 Data Receiver
- DATA 4  A11		// bit 3 Data Receiver
- DATA 5  A12		// bit 4 Data Receiver
- DATA 6  A13		// bit 5 Data Receiver	
- DATA 7  A14		// bit 6 Data Receiver
- DATA 8  A15		// bit 7 Data Receiver		
+ Infrared Matrix Data Transmiter Config:
 
  */
 
@@ -53,25 +13,17 @@
 #define _BPMPositionSensor_H_
 
 #include "InfraredMTX595D.h"
-#include "InfraredOctLM339.h"
+#include "InfraredRX74ls165.h"
+
+#define HOLE_POKE_BASE_9 	1
+#define HOLE_POKE_BASE_10 	3
+#define HOLE_POKE_BASE_11 	2
 
 struct SensorData {
-		int value[7][8] = {
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 },
-				{ -1 - 1, -1, -1, -1, -1, -1, -1 } };
-		char log[56];
-};
-
-struct PositionData {
-		int x = -1;
-		int y = -1;
-		int z = -1;
-		SensorData data;
+	char x[25] = { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 0 };
+	char y[13] = { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 0 };
+	char z[17] ={ 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 0 };
+	char h[13] = { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 0 };
 };
 
 // library interface description
@@ -81,28 +33,32 @@ class BPMPositionSensor {
 
 		BPMPositionSensor ();
 
-		void start (void);
+		void start(void);
 
-		SensorData readData (void);
+		SensorData read(void);
 
-		PositionData read (void);
+		void clear(void);
 
-		void clear (void);
+		boolean test(void);
 
-		boolean test (void);
-
-		// library-accessible "protected" interface
+	// library-accessible "protected" interface
 	protected:
 
-		void setup (void);
+		void setup(void);
+
+		void readData(InfraredMTX595D irtx, InfraredRX74ls165 irrx, char data[]);
 
 		// library-accessible "private" interface
 	private:
 
-		InfraredOctLM339 rx;
-
 		InfraredMTX595D tx;
+		InfraredMTX595D ty;
+		InfraredMTX595D tz;
 
+		InfraredRX74ls165 rx;
+		InfraredRX74ls165 ry;
+		InfraredRX74ls165 rz;
+		InfraredRX74ls165 rh;
 };
 
 #endif

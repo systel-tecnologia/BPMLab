@@ -8,13 +8,14 @@
  */
 #include <Arduino.h>
 #include <AudioMessageDevice.h>
-#include <TimerThree.h>
 #include "BPMLab.h"
 
 #include "BPMExceptionHandler.h"
 #include "BPMUserInterface.h"
 
 BPMLab bpmLab;
+unsigned long previousMillis = 0;        // will store last time LED was updated
+const long interval = 1000;					// constants won't change:
 
 void setup(void) {
 
@@ -36,18 +37,6 @@ void loop(void) {
 	bpmLab.run();
 }
 
-void rtcIsr() {
-	bpmLab.update();
-}
-
-void timerIsr() {
-	bpmLab.write();
-}
-
-BPMLab::BPMLab() {
-
-}
-
 void BPMLab::setup(void) {
 	// Starting Output Audio Devide
 	pinMode(SOUND_CTRL_PIN, OUTPUT);
@@ -56,47 +45,27 @@ void BPMLab::setup(void) {
 
 	// Starting RTC
 	rtc.start();
-	DateTime now = rtc.now();
-	if (now.day() > 31) {
-		exceptionHandler.exceptionDetected(TIME_CLOCK_ERROR);
-	}
+	//rtc.setup(DateTime(F(__DATE__), F(__TIME__)));
+	DateTime now = getCurrenteDateTime(true);
 
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("Starting BPM Lab Devices and System...");
 #endif
 
-	// Starting Position Sensor Grid
+	// Starting Configuration Storage Device
 	configStorage.start();
 	configuration = configStorage.load();
 
-	// Starting Position Sensor Grid
+	// Starting User Interface Display
 	userInterface.start();
 	gotoPage(&logoPage);
 	delay(3000);
 
-	// Starting Position Sensor Grid
+	// Starting Data Logger Device
 	dataLogger.start();
 
 	// Starting Position Sensor Grid
 	positionSensor.start();
-
-	// Starting Position Sensor Grid
-	holePokeSensor.start();
-
-	// Start Interrupts
-	attachInterrupt(digitalPinToInterrupt(RTC_INT_PIN), rtcIsr, CHANGE);
-#if(DEBUG_LEVEL >= 2)
-	DBG_PRINTLN_LEVEL("\tBPM All Interrupts Started...");
-#endif
-
-	// Start Timer
-	Timer3.initialize(TMR_INTERVAL_ISR); // @suppress("Method cannot be resolved")
-	Timer3.attachInterrupt(timerIsr); // @suppress("Method cannot be resolved")
-#if(DEBUG_LEVEL >= 2)
-	DBG_PRINT_LEVEL("\tBPM Pooling TIMER 3 Started to ");
-	DBG_PRINT_LEVEL(TMR_INTERVAL_ISR / 1000);
-	DBG_PRINTLN_LEVEL("ms...");
-#endif
 
 	stop();
 
@@ -116,16 +85,24 @@ void BPMLab::setup(void) {
 }
 
 void BPMLab::run() {
-	if (isRunning() && writeData) {
+
+	userInterface.readTouch();
+	unsigned long currentMillis = millis();
+	if ((currentMillis - previousMillis) >= interval) {
+		previousMillis = currentMillis;
+		updateDisplay = true;
+	}
+
+	if (isRunning()) {
 		// Datalog Processs
-		RecordData record;
-		DateTime now = getCurrenteDateTime(false);
-		record.dateTime = now;
-		record.position = positionSensor.read();
-		record.holePoke = holePokeSensor.read();
-		dataLogger.write(record);
-		calculateElapsedTime(now);
-		writeData = false;
+		if (!updateDisplay) {
+			SensorData data = positionSensor.read();
+			dataLogger.write((currentMillis - startTimeMillis), &data);
+		} else {
+			DateTime now = rtc.now();
+			calculateElapsedTime(now);
+			userInterface.updateDisplay();
+		}
 	} else {
 		// Requests Process
 		if (isConnected()) {
@@ -133,19 +110,15 @@ void BPMLab::run() {
 		} else if (isWaitConnection()) {
 			listeningConnections();
 		}
+		if (updateDisplay) {
+			userInterface.updateDisplay();
+		}
 	}
-
-	// Update Display Data
-	if (isRefreshRateMatchs()) {
-		userInterface.updateDisplay();
-		updateDisplay = false;
-	}
-	userInterface.readTouch();
+	updateDisplay = false;
 
 }
 
 void BPMLab::stop(void) {
-	writeData = false;
 	state = STOPPED;
 	positionSensor.clear();
 	dataLogger.closeFile();
@@ -157,7 +130,6 @@ void BPMLab::start(void) {
 	elapsedTime = TimeSpan(0);
 	endTime = TimeSpan(configuration.totalProcessSeconds);
 	startDateTime = rtc.now();
-	oldDateTime = startDateTime;
 	calculateElapsedTime(startDateTime);
 	if (!dataLogger.isFileOpen()) {
 		dataLogger.openFile(configuration.fileIndex++, startDateTime);
@@ -165,6 +137,7 @@ void BPMLab::start(void) {
 		configStorage.save(configuration);
 	}
 	state = RUNNING;
+	startTimeMillis = millis();
 	updateDisplay = false;
 }
 
@@ -228,13 +201,6 @@ boolean BPMLab::isConnected() {
 	return connected;
 }
 
-boolean BPMLab::isRefreshRateMatchs(void) {
-	if (isRunning()) {
-		return updateDisplay && !writeData;
-	}
-	return updateDisplay;
-}
-
 void BPMLab::answersRequests(void) {
 	if (Serial.available() > 0) {
 		String command = Serial.readString();
@@ -266,21 +232,29 @@ void BPMLab::listeningConnections(void) {
 	}
 }
 
+boolean BPMLab::checkDateTimeError(DateTime dateTime) {
+	return (dateTime.day() > 31 || dateTime.month() > 12
+			|| dateTime.second() > 59 || dateTime.minute() > 59
+			|| dateTime.hour() > 23);
+}
+
 DateTime BPMLab::getCurrenteDateTime(boolean throwException) {
 	DateTime now = rtc.now();
-	boolean erro = (now.day() > 31 || now.month() > 12 || now.second() > 59 || now.minute() > 59 || now.hour() > 23);
-	if (erro && throwException) {
+	boolean error = checkDateTimeError(now);
+
+	if (!throwException) {
+		while (error) {
+			error = checkDateTimeError(now);
+		}
+	} else {
 		if (isRunning()) {
 			stop();
 		}
-		exceptionHandler.exceptionDetected(TIME_CLOCK_ERROR);
-		gotoPage(&exceptionPage);
+		if (error) {
+			exceptionHandler.exceptionDetected(TIME_CLOCK_ERROR);
+			gotoPage(&exceptionPage);
+		}
 	}
-
-	if(erro) {
-		now = oldDateTime;
-	}
-	oldDateTime = now;
 
 	return now;
 }
@@ -317,8 +291,3 @@ void BPMLab::update(void) {
 	}
 }
 
-void BPMLab::write(void) {
-	if (!writeData) {
-		writeData = true;
-	}
-}

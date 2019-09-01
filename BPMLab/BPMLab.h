@@ -18,14 +18,12 @@
 #include "BPMCommandProcessor.h"
 #include "BPMConfigStorage.h"
 #include "BPMDataLogger.h"
-#include "BPMHolePokeSensor.h"
 #include "BPMPositionSensor.h"
 
 class BPMPage;
 
 // Software Config Params
 #define SERIAL_BOUND 		115200  	// Serial interface Bound rate
-#define TMR_INTERVAL_ISR	100000		// Timer Interval 10ms
 
 // Hardware Config Params
 #define SOUND_CTRL_PIN 		17
@@ -41,11 +39,7 @@ class BPMLab {
 		// user-accessible "public" interface
 	public:
 
-		BPMLab (void);
-
 		void update (void);
-
-		void write (void);
 
 		void setup (void);
 
@@ -93,8 +87,6 @@ class BPMLab {
 
 		BPMPositionSensor positionSensor;
 
-		BPMHolePokeSensor holePokeSensor;
-
 		BPMDataLogger dataLogger;
 
 		BPMConfigStorage configStorage;
@@ -109,15 +101,15 @@ class BPMLab {
 		// library-accessible "private" interface
 		void calculateElapsedTime (DateTime currentDateTime);
 
-		boolean isRefreshRateMatchs (void);
-
 		void answersRequests (void);
 
 		void listeningConnections (void);
 
+		boolean checkDateTimeError(DateTime dateTime);
+
 	private:
 
-		boolean writeData = false;
+		unsigned long startTimeMillis = 0;
 
 		boolean updateDisplay = false;
 
@@ -126,8 +118,6 @@ class BPMLab {
 		int32_t currentProgress = 0;
 
 		DateTime startDateTime;
-
-		DateTime oldDateTime;
 
 		TimeSpan elapsedTime = TimeSpan(0, 0, 0, 0);
 

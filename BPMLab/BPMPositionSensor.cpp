@@ -1,15 +1,31 @@
 /*
  File  : BPMPositionSensor.cpp
- Version : 1.0
- Date  : 05/03/2019
+ Version : 2.0
+ Date  : 30/08/2019
  Project : Systel BPM Position Sensor Grid Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
 
  */
+
+#include "BPMPositionSensor.h"
+
 #include <Arduino.h>
 #include <Equino.h>
-#include "BPMPositionSensor.h"
+
 #include "BPMExceptionHandler.h"
+
+byte defaultXSegments[3] = { 0, 1, 2 };
+byte defaultYSegments[2] = { 3, 4 };
+byte defaultZSegments[2] = { 5, 6 };
+
+byte defaultXLightBeans[8] = { 7, 6, 5, 4, 3, 2, 1, 0 };
+byte defaultZLightBeans[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+byte defaultYLightBeans[6] = { 2, 3, 4, 5, 6, 7 };
+
+byte input1LatchPins[4] = { PIN_LOAD, PIN_ENABLED, PIN_DATA0, PIN_CLOCK };
+byte input2LatchPins[4] = { PIN_LOAD, PIN_ENABLED, PIN_DATA1, PIN_CLOCK };
+byte input3LatchPins[4] = { PIN_LOAD, PIN_ENABLED, PIN_DATA2, PIN_CLOCK };
+byte input4LatchPins[4] = { PIN_LOAD, PIN_ENABLED, PIN_DATA3, PIN_CLOCK };
 
 BPMPositionSensor::BPMPositionSensor() {
 
@@ -20,14 +36,26 @@ void BPMPositionSensor::start(void) {
 	DBG_PRINTLN_LEVEL("\tStarting BPM Position Sensor Array...");
 #endif
 	setup();
-	tx.start();
-	rx.start();
+
+	tx.start(defaultXSegments, defaultXLightBeans, sizeof(defaultXSegments),
+			sizeof(defaultXLightBeans));
+	ty.start(defaultYSegments, defaultYLightBeans, sizeof(defaultYSegments),
+			sizeof(defaultYLightBeans));
+	tz.start(defaultZSegments, defaultZLightBeans, sizeof(defaultZSegments),
+			sizeof(defaultZLightBeans));
+
+	rx.start(input1LatchPins, 24);
+	ry.start(input3LatchPins, 16);
+	rz.start(input4LatchPins, 16);
+	rh.start(input2LatchPins, 8);
+
 	if (!test()) {
 		exceptionHandler.exceptionDetected(SENSOR_GRID_ERROR);
 	}
 #if(DEBUG_LEVEL >= 2)
 	DBG_PRINTLN_LEVEL("\t\tPosition Sensor Array Started...");
 #endif
+	clear();
 }
 
 void BPMPositionSensor::setup(void) {
@@ -36,77 +64,48 @@ void BPMPositionSensor::setup(void) {
 
 void BPMPositionSensor::clear(void) {
 	tx.clear();
+	ty.clear();
+	tz.clear();
 }
 
-SensorData BPMPositionSensor::readData(void) {
-	SensorData ret;
-	int i = 0;
-	for (int colIndex = 0; colIndex < tx.getColsSize(); colIndex++) {
-		for (int rowIndex = 0; rowIndex < tx.getRowsSize(); rowIndex++) {
-			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
-				tx.write(colIndex, rowIndex, HIGH);
-				delay(1);
-				byte value = rx.read(rowIndex);
-
-				if ((colIndex == 5 && rowIndex == 6)
-						|| (colIndex == 5 && rowIndex == 2)
-						|| (colIndex == 0 && rowIndex == 6)
-						|| (colIndex == 2 && rowIndex == 1)) {
-					value = 0;
-				}
-
-				ret.value[colIndex][rowIndex] = value;
-				ret.log[i] = (value + 48);
-				i++;
-#if(DEBUG_LEVEL >= 4)
-				DBG_PRINT_LEVEL("\t\t\tReceived: (COL:");
-				DBG_PRINT_LEVEL(colIndex);
-				DBG_PRINT_LEVEL(", ROW:");
-				DBG_PRINT_LEVEL(rowIndex);
-				DBG_PRINT_LEVEL(") VALUE: [");
-				DBG_PRINT_LEVEL(value);
-				DBG_PRINTLN_LEVEL("]");
-#endif
-			}
-		}
-	}
-	delay(1);
+SensorData BPMPositionSensor::read(void) {
 	clear();
-	return ret;
-}
+	SensorData data;
+	int cx = rx.getSensorCount();
+	for (int x = 0; x < cx; x++) {
+		tx.write(x, HIGH);
+		byte value1 = rx.read((cx - 1) - x);
+		data.x[x] = (value1 + 48);
+	}
+	tx.clear();
 
-PositionData BPMPositionSensor::read(void) {
-	PositionData positionData;
-	int x = -1;
-	int y = -1;
-	int z = -1;
-	int cs = tx.getColsSize();
-	int rs = tx.getRowsSize();
-	SensorData data = readData();
-	for (int colIndex = 0; colIndex < cs; colIndex++) {
-		for (int rowIndex = 0; rowIndex < rs; rowIndex++) {
-			if (!((colIndex == 3 || colIndex == 4) && rowIndex >= 6)) {
-				if (data.value[colIndex][rowIndex] == 1) {
-					if (colIndex <= 2) { // Map x
-						x = (colIndex * rs) + rowIndex;
-						break;
-					} else if (colIndex <= 4) { // Map y
-						y = (((colIndex - 3) * rs) + rowIndex) - 1;
-						break;
-					} else { //Map z
-						z = ((colIndex - 5) * rs) + rowIndex;
-						break;
-					}
-				}
-			}
+	int cy = ry.getSensorCount();
+	for (int y = 0; y < cy; y++) {
+		if(y > 3){
+			ty.write((y - 4), HIGH);
+			byte value2 = ry.read((cy - 1) - (y - 4));
+			data.y[y - 4] = (value2 + 48);
+		} else {
+			byte value2 = ry.read(y);
+			data.h[11 - y] = (value2 + 48);
 		}
 	}
+	ty.clear();
 
-	positionData.data = data;
-	positionData.x = x;
-	positionData.y = y;
-	positionData.z = z;
-	return positionData;
+	int cz = rz.getSensorCount();
+	for (int z = 0; z < cz; z++) {
+		tz.write(z, HIGH);
+		byte value3 = rz.read((cz - 1) - z);
+		data.z[z] = (value3 + 48);
+	}
+	tz.clear();
+
+	for (int h = 0; h < rh.getSensorCount(); h++) {
+		byte value4 = rh.read(h);
+		data.h[h] = (value4 + 48);
+	}
+
+	return data;
 }
 
 boolean BPMPositionSensor::test(void) {

@@ -1,7 +1,7 @@
 /*
  File  : InfraredMTX595D.cpp
- Version : 1.0
- Date  : 04/03/2019
+ Version : 2.0
+ Date  : 30/08/2019
  Project : Systel BPM Data Transmiter InfraRed Matrix Support Arduino Library
  Author  : Daniel Valentin - dtvalentin@gmail.com
  
@@ -12,38 +12,34 @@
 #include <Arduino.h>
 #include "InfraredMTX595D.h"
 
-byte defaultRowPins[3] = { PIN_CLK_ROW, PIN_LATCH_ROW, PIN_DATA_ROW };
-byte defaultColPins[3] = { PIN_CLK_COL, PIN_LATCH_COL, PIN_DATA_COL };
-const byte scanCols[8] = { 1, 2, 4, 16, 64, 8, 32, 128 };
-const byte scanRows1[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-const byte scanRows2[8] = { 32, 16, 8, 4, 2, 1, 128, 64 };
-const byte scanRows3[8] = { 32, 8, 16, 4, 2, 1, 128, 64 };
+byte defaultLatchSegmentPins[3] = { PIN_CLK_SG, PIN_LATCH_SG, PIN_DATA_SG };
+byte defaultLatchLightBeamPins[3] = { PIN_CLK_LB, PIN_LATCH_LB, PIN_DATA_LB };
 
-//const byte scanCols[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-//const byte scanRows1[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-//const byte scanRows2[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-//const byte scanRows3[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+const byte scanSegments[8] = { 4, 2, 1, 16, 8, 32, 64, 128 };
+const byte scanLightBeans[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
-InfraredMTX595D::InfraredMTX595D () {
+InfraredMTX595D::InfraredMTX595D() {
 
 }
 
-void InfraredMTX595D::start (void) {
-	start(DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT);
+void InfraredMTX595D::start(byte *segments, byte *lightBeans, int segmentSize,
+		int lightBeamSize) {
+	start(defaultLatchSegmentPins, defaultLatchLightBeamPins, segments,
+			lightBeans, segmentSize, lightBeamSize);
+	clear();
 }
 
-void InfraredMTX595D::start (int colsCount, int rowsCount) {
-	start(defaultColPins, defaultRowPins, colsCount, rowsCount);
-}
-
-void InfraredMTX595D::start (byte *latchColPins, byte *latchRowPins, int colsCount, int rowsCount) {
-	rows = rowsCount;
-	cols = colsCount;
-	colPins = latchColPins;
-	rowPins = latchRowPins;
+void InfraredMTX595D::start(byte *latchSegmentPins, byte *latchLightBeamPins,
+		byte *segments, byte *lightBeans, int segmentSize, int lightBeamSize) {
+	segmentPins = latchSegmentPins;
+	lightBeamPins = latchLightBeamPins;
+	selectedSegments = segments;
+	selectLightBeans = lightBeans;
+	segmentCount = segmentSize;
+	lightBeamCount = lightBeamSize;
 	setup();
 #if(DEBUG_LEVEL >= 2)
-	DBG_PRINTLN_LEVEL("\t\t74HC595D Data Transmiter InfraRed Matrix Device Driver Started...");
+	DBG_PRINTLN_LEVEL("\t\t74HC595D Data Transmitter InfraRed Matrix Device Driver Started...");
 	DBG_PRINT_LEVEL("\t\tWrite ON [");
 	if (colPins && rowPins) {
 		for (int i = 0; i <= 2; i++) {
@@ -61,55 +57,55 @@ void InfraredMTX595D::start (byte *latchColPins, byte *latchRowPins, int colsCou
 	clear();
 }
 
-void InfraredMTX595D::write (byte *latchPins, const byte value) {
-	digitalWrite(latchPins[LATCH], LOW);
-	shiftOut(latchPins[DATA], latchPins[CLOCK], MSBFIRST, value);
-	digitalWrite(latchPins[LATCH], HIGH);
+void InfraredMTX595D::write(int index, byte data) {
+	write((index / lightBeamCount) % segmentCount , index % lightBeamCount, HIGH);
 }
 
-void InfraredMTX595D::write (const int col, const int row, int data) {
-	if (data == HIGH) {
-		if (col == 3) {
-			write(rowPins, scanRows3[row]);
-		} else
-			if (col == 4) {
-				write(rowPins, scanRows2[row]);
-			} else {
-				write(rowPins, scanRows1[row]);
-			}
-		write(colPins, scanCols[col]);
+void InfraredMTX595D::write(const int segment, const int lightBeam, byte data) {
+	int cData = constrain(data, LOW, HIGH);
+	if (cData == HIGH) {
+		int sSegment = selectedSegments[segment];
+		int sLightBeam = selectLightBeans[lightBeam];
+		write(lightBeamPins, scanLightBeans[sLightBeam]);
+		write(segmentPins, scanSegments[sSegment]);
 #if(DEBUG_LEVEL >= 4)
-		DBG_PRINT_LEVEL("\t\t\tSend: (ROW:");
-		DBG_PRINT_LEVEL(row);
-		DBG_PRINT_LEVEL(", COL:");
-		DBG_PRINT_LEVEL(col);
-		DBG_PRINT_LEVEL(") Data --> ");
-		DBG_PRINTLN_LEVEL(data);
+			DBG_PRINT_LEVEL("\t\t\tSend: (SEGMENT:");
+			DBG_PRINT_LEVEL(segment);
+			DBG_PRINT_LEVEL(", LIGHTBEAM:");
+			DBG_PRINT_LEVEL(lightBeam);
+			DBG_PRINT_LEVEL(") Data --> ");
+			DBG_PRINTLN_LEVEL(cData);
 #endif
 	} else {
 		clear();
 	}
 }
 
-int InfraredMTX595D::getColsSize () {
-	return cols;
+void InfraredMTX595D::write(byte *latchPins, const byte value) {
+	digitalWrite(latchPins[LATCH], LOW);
+	shiftOut(latchPins[DATA], latchPins[CLOCK], MSBFIRST, value);
+	digitalWrite(latchPins[LATCH], HIGH);
 }
 
-int InfraredMTX595D::getRowsSize () {
-	return rows;
+int InfraredMTX595D::getLightBeamCount() {
+	return lightBeamCount;
 }
 
-void InfraredMTX595D::clear () {
+int InfraredMTX595D::getSegmentCount() {
+	return segmentCount;
+}
+
+void InfraredMTX595D::clear() {
 #if(DEBUG_LEVEL >= 4)
 	DBG_PRINTLN_LEVEL("\t\t Send Reset ALL COL / ROW Data Values");
 #endif
-	write(rowPins, 0);
-	write(colPins, 0);
+	write(segmentPins, 0);
+	write(lightBeamPins, 0);
 }
 
-void InfraredMTX595D::setup (void) {
-	for (int i = 0; i <= 2; i++) {
-		pinMode(colPins[i], OUTPUT);
-		pinMode(rowPins[i], OUTPUT);
+void InfraredMTX595D::setup(void) {
+	for (int i = 0; i <= sizeof(segmentPins); i++) {
+		pinMode(segmentPins[i], OUTPUT);
+		pinMode(lightBeamPins[i], OUTPUT);
 	}
 }
