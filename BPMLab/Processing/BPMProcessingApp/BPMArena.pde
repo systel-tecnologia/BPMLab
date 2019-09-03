@@ -51,7 +51,7 @@ public class BPMArena {
   private int diameter = 50;
   private float ex;
   private float ey;
-  private float easing = 0.1;
+  private float easing = 0.9;
 
   private String pos = "";
   private String hp = "";

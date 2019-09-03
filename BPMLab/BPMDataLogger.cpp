@@ -16,9 +16,9 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <Sd2Card.h>
+#include <utility/Sd2Card.h>
 #include <SD.h>
-#include <SdFat.h>
+#include <utility/SdFat.h>
 #include <WString.h>
 
 #include "BPMExceptionHandler.h"
@@ -65,8 +65,21 @@ void BPMDataLogger::write(int bufferSize, char *format, ...) {
 	dataFile.println(record);
 }
 
-void BPMDataLogger::write(unsigned long time, SensorData* data) {
-	write(100, (char*) RECORD_FORMAT, time, data->x, data->y, data->z, data->h);
+void BPMDataLogger::write(unsigned long time, SensorData *data) {
+	if (!((data->x[0] == '1' && data->x[8] == '1' && data->x[16] == '1'
+			&& data->x[19] == '1' && data->y[0] == '1')
+			||
+
+			(data->x[8] == '1' && data->x[16] == '1' && data->x[19] == '1'
+					&& data->x[20] == '1' && data->y[0] == '1')
+			||
+
+			(data->y[0] == '1' && data->y[1] == '0' && data->y[2] == '0'
+					&& data->y[3] == '0' && data->y[4] == '0'))) {
+
+		write(100, (char*) RECORD_FORMAT, time, data->x, data->y, data->z,
+				data->h);
+	}
 }
 
 void BPMDataLogger::openFile(int id, DateTime dateTime) {
@@ -122,7 +135,7 @@ void BPMDataLogger::setFileName(char *format, ...) {
 
 void BPMDataLogger::listFileNames(void) {
 	SdFile root = SD.root;
-	dir_t* p;
+	dir_t *p;
 	root.rewind();
 	while ((p = root.readDirCache())) {
 		// done if past last used entry
@@ -168,7 +181,7 @@ void BPMDataLogger::cardInfo(void) {
 }
 
 void BPMDataLogger::deleteFile(String name) {
-	char * fn = name.c_str();
+	char *fn = name.c_str();
 	if (SD.exists(fn)) {
 		if (SD.remove(fn)) {
 			Serial.println("FILEDELETED;" + name);
@@ -177,7 +190,7 @@ void BPMDataLogger::deleteFile(String name) {
 }
 
 void BPMDataLogger::dumpFile(String name) {
-	char * fn = name.c_str();
+	char *fn = name.c_str();
 	Serial.println(fn);
 	File file = SD.open((char*) fn, FILE_READ);
 	while (file.available()) {

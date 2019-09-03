@@ -35,14 +35,22 @@ public class BPMRegister {
 
   BPMRegister(String data) {
     String[] parts = data.split(";");
-    if (parts.length == 6 && !parts[0].equals("DATE")) {
-      date = parts[0];
-      time = parts[1];
-      pos_x = parseInt(parts[2]);
-      pos_y = parseInt(parts[3]);
-      pos_z = parseInt(parts[4]);
-      hp = parseInt(parts[5].replace("\r\n", ""));
+    if (parts.length == 5 && !parts[0].equals("TIME")) {
+      //date = parts[0];
+      //time = parts[0];
+      pos_x = getDataPoint(parts[1], pos_x);
+      pos_y = getDataPoint(parts[2], pos_y);
+      pos_z = getDataPoint(parts[3], pos_z);
+      hp = getDataPoint(parts[4].replace("\r\n", ""), 0);
     }
+  }
+  
+  int getDataPoint(String data, int oldPos){
+    int pos = data.indexOf("1");
+    if(pos == -1){
+      pos = data.lastIndexOf("1");
+    }
+    return pos;
   }
 }
 
