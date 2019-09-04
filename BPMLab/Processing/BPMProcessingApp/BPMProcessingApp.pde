@@ -260,7 +260,7 @@ void draw() {
 
   // Move Arena
   if (bpmConnection.isProcessStarted()) {
-    BPMRegister  data = bpmDataFileReader.processData(bpmConnection.getData());
+    BPMRegister  data = bpmDataFileReader.processData(bpmConnection.getData(), "12/12/2019");
     bpmArena.setPosition(data);
   }
   bpmArena.update();

@@ -102,6 +102,9 @@ void BPMLab::run() {
 			DateTime now = rtc.now();
 			calculateElapsedTime(now);
 			userInterface.updateDisplay();
+			if (isConnected()) {
+				answersRequests();
+			}
 		}
 	} else {
 		// Requests Process

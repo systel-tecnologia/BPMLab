@@ -33,24 +33,46 @@ public class BPMRegister {
     hp = 0;
   }
 
-  BPMRegister(String data) {
-    String[] parts = data.split(";");
+  BPMRegister(String data, String processDate) {
+    String dataRow = data.replace("'", "");
+    String[] parts = dataRow.split(";");
     if (parts.length == 5 && !parts[0].equals("TIME")) {
-      //date = parts[0];
-      //time = parts[0];
+      date = processDate;
+      time = getDataTime(parts[0]);
       pos_x = getDataPoint(parts[1], pos_x);
       pos_y = getDataPoint(parts[2], pos_y);
-      pos_z = getDataPoint(parts[3], pos_z);
-      hp = getDataPoint(parts[4].replace("\r\n", ""), 0);
+      pos_z = getDataPoint(parts[3], -1);
+      hp = getDataPoint(parts[4].replace("\r\n", ""), -1);
     }
   }
   
+  SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+  
+  String getDataTime(String millis){
+    long t = Long.parseLong(millis);
+    Date date = new Date(t);
+    Calendar cal = Calendar.getInstance();
+    cal.set(Calendar.HOUR_OF_DAY, 0);
+    cal.set(Calendar.MINUTE, date.getMinutes());
+    cal.set(Calendar.SECOND, date.getSeconds());
+    String df = sdf.format(cal.getTime()); 
+    return df;  
+  }
+  
   int getDataPoint(String data, int oldPos){
-    int pos = data.indexOf("1");
-    if(pos == -1){
-      pos = data.lastIndexOf("1");
+    for(int avg = 0; avg < data.length(); avg++){
+      String stravg = "";
+      for(int i = 0; i < data.length() - avg; i++){
+        stravg = stravg + "1";
+      }
+      int pos = data.indexOf(stravg);
+      if(pos != -1){
+        int w = (stravg.length() / 2);
+        //println(pos + "  " + stravg + " " + w);
+        return (pos + w);
+      }
     }
-    return pos;
+    return -1;
   }
 }
 
@@ -71,11 +93,12 @@ public class BPMDataFileReader {
     super();
   }
 
-  public BPMRegister processData(String data) {
-    BPMRegister register = new BPMRegister(data);
+  public BPMRegister processData(String data, String date) {
+    BPMRegister register = new BPMRegister(data, date);
     return register;
   }
 
+SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
 
   public BPMAnalysis analyzeBPMFile(File file) {
     logger("Processing:: Analyzing "+ file.getName()  +" File...");
@@ -93,12 +116,12 @@ public class BPMDataFileReader {
     int i = 0;
     for (String row : table) {
       if (i == 0) {
-        if (!row.contains("DATE;TIME;X;Y;Z;HP")) {
+        if (!row.contains("TIME;X;Y;Z;HP")) {
           break;
         }
       }
       if (i > 0) {
-        BPMRegister register = new BPMRegister(row); 
+        BPMRegister register = new BPMRegister(row, sddf.format(file.lastModified())); 
         analysis.row.add(register);
 
         // Start Time Process
@@ -152,7 +175,7 @@ public class BPMDataFileReader {
 
   private int calculateTimeCount(String initTime, String endTime) {
     if (!endTime.isEmpty() && !initTime.isEmpty()) {
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
       LocalDateTime i = LocalDateTime.parse(initTime, formatter);
       LocalDateTime e = LocalDateTime.parse(endTime, formatter);
       Duration duration = Duration.between(i, e);
@@ -161,9 +184,9 @@ public class BPMDataFileReader {
       if (milis <= 60000) {
         return 1;
       }
-      return period.intValue();
+      return period.intValue()+1;
     }
-    return 0;
+    return 1;
   }
 
 
