@@ -90,6 +90,8 @@ SensorData BPMPositionSensor::read(void) {
 			data.h[11 - y] = (value2 + 48);
 		}
 	}
+	data.y[0] = 48;
+
 	ty.clear();
 
 	int cz = rz.getSensorCount();

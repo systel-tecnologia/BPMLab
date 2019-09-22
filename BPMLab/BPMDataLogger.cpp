@@ -67,15 +67,14 @@ void BPMDataLogger::write(int bufferSize, char *format, ...) {
 
 void BPMDataLogger::write(unsigned long time, SensorData *data) {
 	if (!((data->x[0] == '1' && data->x[8] == '1' && data->x[16] == '1'
-			&& data->x[19] == '1' && data->y[0] == '1')
+			&& data->x[11] == '1')
 			||
 
-			(data->x[8] == '1' && data->x[16] == '1' && data->x[19] == '1'
-					&& data->x[20] == '1' && data->y[0] == '1')
+			(data->x[0] == '1' && data->x[8] == '1' && data->x[10] == '1'
+					&& data->x[15] == '1' && data->y[0] == '1')
 			||
 
-			(data->y[0] == '1' && data->y[1] == '0' && data->y[2] == '0'
-					&& data->y[3] == '0' && data->y[4] == '0'))) {
+			(data->x[0] == '1' && data->y[1] == '1' && data->y[5] == '1'))) {
 
 		write(100, (char*) RECORD_FORMAT, time, data->x, data->y, data->z,
 				data->h);
