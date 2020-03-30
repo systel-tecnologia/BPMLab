@@ -29,26 +29,34 @@ public class BPMRegister {
     time ="";
     pos_x = 0;
     pos_y = 0;
-    pos_z = 0;
-    hp = 0;
+    pos_z = -1;
+    hp = -1;
   }
 
   BPMRegister(String data, String processDate) {
-    String dataRow = data.replace("'", "");
+    String dataRow = data.replace("'", "").replace("´", "").replace("´", "");
     String[] parts = dataRow.split(";");
     if (parts.length == 5 && !parts[0].equals("TIME")) {
       date = processDate;
       time = getDataTime(parts[0]);
-      pos_x = getDataPoint(parts[1], pos_x);
-      pos_y = getDataPoint(parts[2], pos_y);
-      pos_z = getDataPoint(parts[3], -1);
-      hp = getDataPoint(parts[4].replace("\r\n", ""), -1);
+      pos_x = getDataPoint(parts[1]);
+      pos_y = getDataPoint(parts[2]);
+      pos_z = -1;
+      hp = -1;
+      if (pos_x.equals(-1) || pos_y.equals(-1)) {
+        pos_y = -1;
+        pos_x = -1;
+      }
+      if (pos_x > -1 || pos_y > -1) {
+        pos_z = getDataPoint(parts[3]);
+        hp = getDataPoint(parts[4].replace("\r\n", ""));
+      }
     }
   }
-  
+
   SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-  
-  String getDataTime(String millis){
+
+  String getDataTime(String millis) {
     long t = Long.parseLong(millis);
     Date date = new Date(t);
     Calendar cal = Calendar.getInstance();
@@ -56,20 +64,35 @@ public class BPMRegister {
     cal.set(Calendar.MINUTE, date.getMinutes());
     cal.set(Calendar.SECOND, date.getSeconds());
     String df = sdf.format(cal.getTime()); 
-    return df;  
+    return df;
   }
-  
-  int getDataPoint(String data, int oldPos){
-    for(int avg = 0; avg < data.length(); avg++){
+
+  int getDataPoint(String data) {
+    for (int avg = 0; avg < data.length(); avg++) {
       String stravg = "";
-      for(int i = 0; i < data.length() - avg; i++){
+      for (int i = 0; i < data.length() - avg; i++) {
         stravg = stravg + "1";
       }
       int pos = data.indexOf(stravg);
-      if(pos != -1){
+      if (pos != -1) {
         int w = (stravg.length() / 2);
-        //println(pos + "  " + stravg + " " + w);
-        return (pos + w);
+        if (w == 0) {
+          String ns = "";
+          for (int fd = pos + 1; fd < data.length(); fd++) {
+            ns = ns + data.charAt(fd);
+          }
+          int pp = ns.indexOf("1");
+          if (pp > 0) {
+            return -1;
+          }
+        }
+        int mid = ((data.length() / 2) - 1);
+        if (pos > mid) {
+          return (pos + w);
+        } else if (pos < mid) {
+          return (pos - w);
+        }
+        return pos;
       }
     }
     return -1;
@@ -98,7 +121,7 @@ public class BPMDataFileReader {
     return register;
   }
 
-SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
+  SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
 
   public BPMAnalysis analyzeBPMFile(File file) {
     logger("Processing:: Analyzing "+ file.getName()  +" File...");
@@ -108,12 +131,14 @@ SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
     int hps = 0;
     int reags = 0;
     String quad = BPMQuadrant.QUAD_A;
-    Integer hp = 0;
+    Integer hp = -1;
     Integer rg = -1;
     String table[] = loadStrings(file.getAbsolutePath());
     String initTime ="";
     String endTime = "";
     int i = 0;
+    boolean flagcount = false;
+
     for (String row : table) {
       if (i == 0) {
         if (!row.contains("TIME;X;Y;Z;HP")) {
@@ -126,7 +151,7 @@ SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
 
         // Start Time Process
         if (i == 1) {
-          initTime = register.date + " "+ register.time;
+          initTime = register.date + " " + register.time;
         }
 
         // Analyzes Transitions
@@ -141,7 +166,7 @@ SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
         // Analyzys HP
         Integer newHp = register.hp; 
         if (!newHp.equals(hp)) {
-          if (!newHp.equals(0)) {
+          if (!newHp.equals(-1)) {
             hps++;
           }
         }
@@ -149,12 +174,15 @@ SimpleDateFormat sddf = new SimpleDateFormat("dd/MM/yyyy");
 
         // Analyzys Rearing
         Integer newRg = register.pos_z;
-        if (!rg.equals(-1)) {
-          if (newRg.equals(-1)) {
-            reags++;
-          }
+        if (!rg.equals(-1) && newRg.equals(-1) && !flagcount) {
+          flagcount = true;
+        }
+        if (rg.equals(-1) && newRg.equals(-1) && flagcount) {
+          reags++;
+          flagcount = false;
         }
         rg = newRg;
+        
         endTime = register.date + " "+ register.time;
       }
       i++;

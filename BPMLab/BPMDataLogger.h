@@ -24,7 +24,7 @@
 
 static const char* HEADER_FORMAT = "TIME;X;Y;Z;HP";
 static const char* RECORD_FORMAT = "%ld;'%s;'%s;'%s;'%s";
-static const char* FILE_NAME_FORMAT = "BPMDF%.3d.CSV";
+static const char* FILE_NAME_FORMAT = "BPM%.5d.CSV";
 
 // library interface description
 class BPMDataLogger {

@@ -76,6 +76,8 @@ void BPMDataLogger::write(unsigned long time, SensorData *data) {
 
 			(data->x[0] == '1' && data->y[1] == '1' && data->y[5] == '1'))) {
 
+		data->z[0] = '0';
+
 		write(100, (char*) RECORD_FORMAT, time, data->x, data->y, data->z,
 				data->h);
 	}

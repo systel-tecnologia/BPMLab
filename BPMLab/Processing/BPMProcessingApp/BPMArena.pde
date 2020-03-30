@@ -6,6 +6,7 @@
  Author: Daniel Valentin - dtvalentin@gmail.com
  */
 
+
 public class BPMQuadrant {
 
   public static final String QUAD_A = "A";
@@ -34,24 +35,30 @@ public class BPMQuadrant {
 
 public class BPMArena {
 
-  public HashMap<Integer, String> quadsX = new HashMap<Integer, String>();
-  public HashMap<Integer, String> quadsY = new HashMap<Integer, String>();
-  public HashMap<String, BPMQuadrant> quadCoords = new HashMap<String, BPMQuadrant>();
+  public LinkedHashMap<Integer, String> quadsX = new LinkedHashMap<Integer, String>();
+  public LinkedHashMap<Integer, String> quadsY = new LinkedHashMap<Integer, String>();
+  public LinkedHashMap<String, BPMQuadrant> quadCoords = new LinkedHashMap<String, BPMQuadrant>();
 
   private PImage arena;
   private PImage mice;
+  private PImage rearingUp;
+  private PImage rearingDown;
+  private PImage hpOff;
+  private PImage hpOn;
 
-  private int x;
-  private int y;
-  private int z;
-  private int offset_x = 310;
-  private int offset_y = 60;
+  private int x = 0;
+  private int y = 0;
+  private int z = 0;
+  private int h = 0;
+
+  private int offset_x = 285;
+  private int offset_y = 275;
   private int sensor_dx = 24;
   private int sensor_dy = 22;
   private int diameter = 50;
   private float ex;
   private float ey;
-  private float easing = 0.6;
+  private float easing = 0.3;
 
   private String pos = "";
   private String hp = "";
@@ -65,7 +72,7 @@ public class BPMArena {
     quadsX.put(4, "A,D,G");
     quadsX.put(5, "A,D,G");
     quadsX.put(6, "A,D,G");
-    
+
     quadsX.put(7, "B,E,H");
     quadsX.put(8, "B,E,H");
     quadsX.put(9, "B,E,H");
@@ -76,7 +83,7 @@ public class BPMArena {
     quadsX.put(14, "B,E,H");
     quadsX.put(15, "B,E,H");
     quadsX.put(16, "B,E,H");
-    
+
     quadsX.put(17, "C,F,I");
     quadsX.put(18, "C,F,I");
     quadsX.put(19, "C,F,I");
@@ -112,6 +119,11 @@ public class BPMArena {
 
     arena = loadImage("arena.png");
     mice = loadImage("mice.png");
+    rearingUp = loadImage("rearingUp.png");
+    rearingDown = loadImage("rearingDown.png");
+    hpOff  = loadImage("hpOff.png");
+    hpOn  = loadImage("hpOn.png");
+
     reset();
   }
 
@@ -132,8 +144,18 @@ public class BPMArena {
       // Y Position
       y = (register.pos_y * sensor_dy);
 
-      pos = "POS: ( " + register.pos_x + ", " + register.pos_y + ", " + register.pos_z + " )";
-      hp = "HP: ( " + register.hp + " )";
+      // H Position
+      h = register.hp;
+
+      pos = "Sensor: (  )";
+      if (register.pos_z != -1) {
+        pos = "Sensor: ( " + register.pos_z + " )";
+      }
+
+      hp = "Sensor: (  )";
+      if (register.hp != -1) {
+        hp = "Sensor: ( " + (register.hp + 1) + " )";
+      }
     }
   }
 
@@ -150,21 +172,34 @@ public class BPMArena {
 
     // Quadrants
     textFont(font3, 35);
-    text("1", 400, 80);
-    text("2", 600, 80);
-    text("3", 800, 80);
-    text("4", 400, 190);
-    text("5", 600, 190);
-    text("6", 800, 190);
-    text("7", 400, 290);
-    text("8", 600, 290);
-    text("9", 800, 290);
+    text("A", 400, 290);
+    text("B", 600, 290);
+    text("C", 800, 290);
+    text("D", 400, 190);
+    text("E", 600, 190);
+    text("F", 800, 190);
+    text("G", 400, 80);
+    text("H", 600, 80);
+    text("I", 800, 80);
 
     // Arena Draw
     textFont(font1, 20);
-    text(pos, 300, 390);
-    text(hp, 300, 420);
+    fill(0, 102, 153);
+    text(hp, 290, 390);
+    text(pos, 630, 390);
     fill(0, 0, 255);
-    image(mice, (ex + offset_x), (ey + offset_y), diameter, diameter);
+    image(mice, (ex + offset_x) + (diameter / 2), (-ey + offset_y)+ (diameter / 2), diameter, diameter);
+
+    if (h == -1) {
+      image(hpOff, 410, 390, 160, 68);
+    } else {
+      image(hpOn, 410, 390, 160, 68);
+    }
+
+    if (z == -1) {
+      image(rearingDown, 750, 365, 163, 97);
+    } else {
+      image(rearingUp, 750, 365, 173, 107);
+    }
   }
 }

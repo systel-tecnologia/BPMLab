@@ -20,6 +20,7 @@ import java.time.*;
 import java.time.temporal.*;
 import grafica.*;
 import at.mukprojects.console.*;
+import java.math.*;
 
 // Static Definition
 public static final int BPM_ALPHA = 30;
@@ -108,15 +109,15 @@ class BPMConfig {
 
 void setup() {
   size(1270, 720, JAVA2D);
- 
-   // Initialize the console 
+
+  // Initialize the console 
   console = new Console(this);
   // Start the console
   console.start();
   console.setTimestamp(false);
   console.setAutoPrint(true);
   console.setCutMove(true);
-  
+
   font0 = createFont("Arial", 16);
   font1 = createFont("Arial", 18);
   font2 = createFont("Arial", 25);
@@ -226,7 +227,6 @@ void draw() {
   background(235);
   stroke(0);
   strokeWeight(2);
-  fill(200, 210, 200);
   if (formIndex > -1) {
     image(forms[formIndex], 35, 180, 200, 290);
     btnStart.setVisible(formIndex == MAIN_FORM);
@@ -982,76 +982,109 @@ public void createControlsAnalysis() {
 
 
 public void createGraphicsAnalysis() {
-  // Plot Statistics 
+
   points1 = new GPointsArray(3);
   points1.add(0, 0, "Moviments");
-  points1.add(1, 0, "Hole Poke");
-  points1.add(2, 0, "Rearing");
+  points1.add(1, 0, "Hole Pokes");
+  points1.add(2, 0, "Rearings");
+
+  points2 = new GPointsArray(9);
+  points2.add(0, 0, "A");
+  points2.add(1, 0, "B");
+  points2.add(2, 0, "C");
+  points2.add(3, 0, "D");
+  points2.add(4, 0, "E");
+  points2.add(5, 0, "F");
+  points2.add(6, 0, "G");
+  points2.add(7, 0, "H");
+  points2.add(8, 0, "I");
+
+  points4 = new GPointsArray(11);
+  points4.add(0, 0, "Sensor 01");
+  points4.add(1, 0, "Sensor 02");
+  points4.add(2, 0, "Sensor 03");
+  points4.add(3, 0, "Sensor 04");
+  points4.add(4, 0, "Sensor 05");
+  points4.add(5, 0, "Sensor 06");
+  points4.add(6, 0, "Sensor 07");
+  points4.add(7, 0, "Sensor 08");
+  points4.add(8, 0, "Sensor 09");
+  points4.add(9, 0, "Sensor 10");
+  points4.add(10, 0, "Sensor 11");
+
+  points5 = new GPointsArray(11);
+  points5.add(0, 0, "Sensor 01");
+  points5.add(1, 0, "Sensor 02");
+  points5.add(2, 0, "Sensor 03");
+  points5.add(3, 0, "Sensor 04");
+  points5.add(4, 0, "Sensor 05");
+  points5.add(5, 0, "Sensor 06");
+  points5.add(6, 0, "Sensor 07");
+  points5.add(7, 0, "Sensor 08");
+  points5.add(8, 0, "Sensor 09");
+  points5.add(9, 0, "Sensor 10");
+  points5.add(10, 0, "Sensor 11");
+  points5.add(11, 0, "Sensor 12");
+  points5.add(12, 0, "Sensor 13");
+  points5.add(13, 0, "Sensor 14");
+  points5.add(14, 0, "Sensor 15");
+  points5.add(15, 0, "Sensor 16");
+
+  // Plot Statistics 
   plotBars = new GPlot(analyzeWindow);
   plotBars.setPos(25, 300);
   plotBars.setDim(150, 215);
-  plotBars.setYLim(0, 1);
-  plotBars.setXLim(-1, 3);
   plotBars.getTitle().setText("Statistic ( Time 0 min )");
-  plotBars.getTitle().setTextAlignment(LEFT);
-  plotBars.getTitle().setRelativePos(0.2);
   plotBars.getYAxis().getAxisLabel().setText("Records");
   plotBars.setPoints(points1);
   plotBars.startHistograms(GPlot.VERTICAL);
   plotBars.getHistogram().setDrawLabels(true);
   plotBars.getHistogram().setRotateLabels(true);
 
-  // Plot Zone
+  // Plot Quadrants
   plotQuads = new GPlot(analyzeWindow);
   plotQuads.setPos(310, 20);
   plotQuads.setDim(255, 180);
-  plotQuads.setYLim(0.5, 9.5);
-  plotQuads.setVerticalAxesTicksSeparation(1);
-  plotQuads.setFixedXLim(true);
-  plotQuads.setFixedYLim(true);
-  plotQuads.getTitle().setText("Moviment");
-  plotQuads.getYAxis().getAxisLabel().setText("Quadrant");
-  plotQuads.getXAxis().getAxisLabel().setText("Routes");
-  plotQuads.startHistograms(GPlot.HORIZONTAL);
+  plotQuads.getTitle().setText("Moviments");
+  plotQuads.getYAxis().getAxisLabel().setText("Routes");
+  plotQuads.setPoints(points2);
+  plotQuads.startHistograms(GPlot.VERTICAL);
   plotQuads.getHistogram().setDrawLabels(true);
   plotQuads.getHistogram().setRotateLabels(true);
 
-
-  // Hole Poke
+  // Hole Pokes 
   plotHp = new GPlot(analyzeWindow);
-  plotHp.setPos(310, 335);
-  plotHp.setDim(255, 180);
-  plotHp.setYLim(0.5, 11.5);
-  plotHp.setVerticalAxesTicksSeparation(1);
-  plotHp.setFixedXLim(true);
-  plotHp.setFixedYLim(true);
-  plotHp.getTitle().setText("Hole Poke");
-  plotHp.getXAxis().getAxisLabel().setText("Records");
-  plotHp.getYAxis().getAxisLabel().setText("HP Sensor");
+  plotHp.setPos(310, 335); 
+  plotHp.setDim(255, 180);            
+  plotHp.getTitle().setText("Hole Pokes");
+  plotHp.getYAxis().getAxisLabel().setText("Records");
+  plotHp.getYAxis().setDrawTickLabels(true);
+  plotHp.getYAxis().setDrawAxisLabel(true);
+  plotHp.setPoints(points4);
+  plotHp.startHistograms(GPlot.VERTICAL);
+  plotHp.getHistogram().setDrawLabels(true);
+  plotHp.getHistogram().setRotateLabels(true);
 
   // Rearing
   plotRearing = new GPlot(analyzeWindow);
   plotRearing.setPos(702, 20);
   plotRearing.setDim(255, 180);
-  plotRearing.setYLim(-0.5, 16.5);
-  plotRearing.setFixedXLim(true);
-  plotRearing.setFixedYLim(true);
-  plotRearing.getTitle().setText("Rearing");
-  plotRearing.getXAxis().getAxisLabel().setText("Records");
-  plotRearing.getYAxis().getAxisLabel().setText("Z Sensor");
-
+  plotRearing.getTitle().setText("Rearings");
+  plotRearing.getYAxis().getAxisLabel().setText("Records");
+  plotRearing.setPoints(points5);
+  plotRearing.startHistograms(GPlot.VERTICAL);
+  plotRearing.getHistogram().setDrawLabels(true);
+  plotRearing.getHistogram().setRotateLabels(true);
 
   // Plot Routes
   plotRoutes = new GPlot(analyzeWindow);
   plotRoutes.setPos(702, 335);
   plotRoutes.setDim(255, 180);
-  plotRoutes.setYLim(-0.5, 12.5);
-  plotRoutes.setXLim(-0.5, 23.5);
-  plotRoutes.setVerticalAxesTicksSeparation(2);
+  plotRoutes.setYLim(-0.8, 11.8);
+  plotRoutes.setXLim(-0.8, 23.8);
+  plotRoutes.setVerticalAxesTicksSeparation(1);
   plotRoutes.setHorizontalAxesTicksSeparation(2);
-  plotRoutes.setFixedXLim(true);
-  plotRoutes.setFixedYLim(true);
-  plotRoutes.getTitle().setText("Path");
+  plotRoutes.getTitle().setText("Heat Time");
   plotRoutes.getXAxis().getAxisLabel().setText("X Sensor");
   plotRoutes.getYAxis().getAxisLabel().setText("Y Sensor");
 }
@@ -1079,48 +1112,130 @@ public void updateAnalysys(BPMAnalysis analysis) {
 
   // Data Stat
   points1 = new GPointsArray(3);
-  points1.add(0, analysis.moviments, "Moves");
-  points1.add(1, analysis.holePokes, "Hole Poke");
-  points1.add(2, analysis.rearings, "Rearing");
+  points1.add(0, analysis.moviments, "Moviments");
+  points1.add(1, analysis.holePokes, "Hole Pokes");
+  points1.add(2, analysis.rearings, "Rearings");
   plotBars.getTitle().setText("Statistic ( "+ analysis.timeCount +"  min )");
-  plotBars.setYLim(0, analysis.registers);
   plotBars.setPoints(points1);
 
   // Data Zone
   points2 = new GPointsArray(analysis.route.size());
-  int j = 0;
+
+  HashMap<String, Integer> routecounts = new HashMap<String, Integer>();
+  routecounts.put(BPMQuadrant.QUAD_A, 0);
+  routecounts.put(BPMQuadrant.QUAD_B, 0);
+  routecounts.put(BPMQuadrant.QUAD_C, 0);
+  routecounts.put(BPMQuadrant.QUAD_D, 0);
+  routecounts.put(BPMQuadrant.QUAD_E, 0);
+  routecounts.put(BPMQuadrant.QUAD_F, 0);
+  routecounts.put(BPMQuadrant.QUAD_G, 0);
+  routecounts.put(BPMQuadrant.QUAD_H, 0);
+  routecounts.put(BPMQuadrant.QUAD_I, 0);
+
   for (BPMRoute route : analysis.route) {
     BPMQuadrant q1 = bpmArena.quadCoords.get(route.to);
-    GPoint p1 = new GPoint(j, q1.index);
+    Integer value = routecounts.get(q1.id);
+    value++;
+    routecounts.put(q1.id, value);
+  }
+
+  Integer j = 0;
+  points2 = new GPointsArray(9);
+  for (String key : routecounts.keySet()) {
+    GPoint p1 = new GPoint(j, routecounts.get(key), key);
     points2.add(p1);
     j++;
   }
-
-  plotQuads.setXLim(0, analysis.route.size());
   plotQuads.setPoints(points2);
 
   // Data Path, hp, rearing
-  points3 = new GPointsArray(analysis.registers);
-  points4 = new GPointsArray(analysis.registers);
-  points5 = new GPointsArray(analysis.registers);
-  int i = 0;
+  points3 = new GPointsArray(12*24);
+  float[] pointSizes = new float[12*24];
+
+  int hps[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int rearings[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int heats[][] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
   for (BPMRegister row : analysis.row) {
     if (row.pos_x > -1 && row.pos_y > -1) {
-      GPoint p1 = new GPoint(row.pos_x, row.pos_y);
-      points3.add(p1);
+      heats[row.pos_x][row.pos_y]++;
     }
 
-    GPoint p2 = new GPoint(i, row.hp);
-    points4.add(p2);
+    if (row.hp > -1) {
+      hps[row.hp]++;
+    }
 
-    GPoint p3 = new GPoint(i, row.pos_z);
-    points5.add(p3);
-    i++;
+    if (row.pos_z > -1) {
+      rearings[row.pos_z]++;
+    }
   }
-  plotHp.setXLim(0, analysis.registers);
-  plotRearing.setXLim(0, analysis.registers);
+
+  int rowIndex = 0;
+  float scale = 2;
+  for (int x = 0; x < 24; x++) {
+    for (int y = 0; y < 12; y++) {
+      points3.add(x, y);
+      pointSizes[rowIndex++] = 2 * sqrt(heats[x][y]/(scale * PI));
+    }
+  }
+  println(scale);
   plotRoutes.setPoints(points3);
+  plotRoutes.setPointSizes(pointSizes);
+
+  points4 = new GPointsArray(11);
+  points4.add(0, hps[0], "Sensor 01");
+  points4.add(1, hps[1], "Sensor 02");
+  points4.add(2, hps[2], "Sensor 03");
+  points4.add(3, hps[3], "Sensor 04");
+  points4.add(4, hps[4], "Sensor 05");
+  points4.add(5, hps[5], "Sensor 06");
+  points4.add(6, hps[6], "Sensor 07");
+  points4.add(7, hps[7], "Sensor 08");
+  points4.add(8, hps[8], "Sensor 09");
+  points4.add(9, hps[9], "Sensor 10");
+  points4.add(10, hps[10], "Sensor 11");
   plotHp.setPoints(points4);
+
+  points5 = new GPointsArray(11);
+  points5.add(0, rearings[0], "Sensor 01");
+  points5.add(1, rearings[1], "Sensor 02");
+  points5.add(2, rearings[2], "Sensor 03");
+  points5.add(3, rearings[3], "Sensor 04");
+  points5.add(4, rearings[4], "Sensor 05");
+  points5.add(5, rearings[5], "Sensor 06");
+  points5.add(6, rearings[6], "Sensor 07");
+  points5.add(7, rearings[7], "Sensor 08");
+  points5.add(8, rearings[8], "Sensor 09");
+  points5.add(9, rearings[9], "Sensor 10");
+  points5.add(10, rearings[10], "Sensor 11");
+  points5.add(11, rearings[11], "Sensor 12");
+  points5.add(12, rearings[12], "Sensor 13");
+  points5.add(13, rearings[13], "Sensor 14");
+  points5.add(14, rearings[14], "Sensor 15");
+  points5.add(15, rearings[15], "Sensor 16");
   plotRearing.setPoints(points5);
 }
 

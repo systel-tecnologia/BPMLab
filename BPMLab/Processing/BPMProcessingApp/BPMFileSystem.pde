@@ -113,7 +113,7 @@ public class BPMFileSystem {
     int i = 0;
     for (String data : receivedFileData) {
       if (i > 0 ) {
-        output.println(data);
+        output.append(data);
       }
       i++;
     }
